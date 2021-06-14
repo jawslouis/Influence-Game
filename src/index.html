@@ -1,0 +1,116 @@
+<!doctype html>
+
+
+{% load static %}
+
+<html>
+<head>
+    {% include 'google-analytics.html' %}
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A game inspired by Go - convert tiles and expand your territory!">
+    <title>Influence</title>
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="icon" sizes="192x192" href="{% static 'icon.png' %}">
+    <link rel="stylesheet"
+          href="{% static 'Lato.css' %}">
+    <link rel="stylesheet" href="{% static 'influence.css' %}">
+
+    <script>
+
+        let angle = 0;
+
+        function rotateUndo() {
+            let img = document.getElementById('undo-img');
+            angle -= 360;
+            img.style.transform = `rotate(${angle}deg)`;
+
+
+        }
+    </script>
+</head>
+
+<body>
+
+<div id="settings-bg"></div>
+<div class="text top-row">
+    <h1 class="title-spacer">Influence</h1>
+    <div class="vertical-pad" style="vertical-align: middle;">Convert tiles and expand your territory!
+        <a href="#howto" style="text-decoration: none">
+            <span style="text-decoration: underline;">How to play</span>
+            ▼</a>
+    </div>
+</div>
+
+<div id="game-container">
+    <div id="game-canvas">
+        <div id="gameover-overlay" class="hidden overlay">
+            <div id="game-over">Game Over</div>
+            <div id="winner">Blue Wins!</div>
+            <div class="restart">Restart</div>
+        </div>
+        <div id="settings-overlay" class="hidden overlay">
+            <div class="flex-row green">
+                <div class="label">Green AI</div>
+                <div class="flex-row btn-grp">
+                    <div class="none-btn btn-selected">None</div>
+                    <div>Easy</div>
+                    <div>Medium</div>
+                    <div class="hard-btn">Hard</div>
+                </div>
+            </div>
+            <div class="flex-row blue">
+                <div class="label">Blue AI</div>
+                <div class="flex-row btn-grp">
+                    <div class="none-btn btn-selected">None</div>
+                    <div>Easy</div>
+                    <div>Medium</div>
+                    <div class="hard-btn">Hard</div>
+                </div>
+            </div>
+            <div class="restart">Restart</div>
+        </div>
+    </div>
+
+    <div class="game-row">
+        <div id="settings"><img src="{% static 'settings.png' %}"></div>
+        <div class="score">
+            <div class="score-label">
+                <div class="score-color" style="background-color: #038003;">Green</div>
+                <div class="score-num" style="background-color: #749c74;" id="score-green">0 tiles</div>
+            </div>
+            <div id="score-border">type</div>
+            <div class="score-label">
+                <div class="score-color" style="background-color: #005bd5;">Blue</div>
+                <div class="score-num" style="background-color: #5d80af;" id="score-blue">0 tiles</div>
+            </div>
+        </div>
+        <div class="undo no-select" id="undo-btn">
+            <div id="undo-text">Undo</div>
+            <img id='undo-img' src="{% static 'undo.png' %}">
+        </div>
+
+    </div>
+</div>
+
+<div class="text" id="howto">
+    <h3 class="title-spacer">How to play</h3>
+    <p class="para-text">Players take turns to select and color a tile. At the end of a turn, each tile will
+        <span style="font-style: italic;">influence</span> its neighbors by imparting some of its color.</p>
+    <p class="para-text">If a tile gains enough color to pass the threshold, it can no longer be selected and will have
+        a dark
+        border. Conversely, a tile can lose its dark border and become selectable if it loses enough color.</p>
+    <p class="para-text">The game ends when all tiles pass the color threshold. The player with the most colored tiles
+        wins!</p>
+
+    <h3 class="title-spacer">Play against AI</h3>
+    <p class="para-text">Set the difficulty and color of the AI player in the settings menu </p>
+    <p class="para-text" style="font-style: italic;">Hint: Pit the AI against itself to pick up some strategies!</p>
+</div>
+
+<script defer src="{% static 'phaser-custom.min.js' %}"></script>
+<% for(var i=0; i < htmlWebpackPlugin.files.js.length; i++) {%>
+<script defer src="{% static 'influence/<%= htmlWebpackPlugin.files.js[i] %>' %}"></script>
+<% } %>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "influence",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode development",
+    "build-pdn": "webpack --mode production",
+    "watch": "webpack --watch --mode development",
+    "start": "webpack-dev-server --open --mode development"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.2"
+  },
+  "dependencies": {
+    "html-webpack-plugin": "^5.3.1"
+  }
+}

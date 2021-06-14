@@ -1,0 +1,13 @@
+{
+  "short_name": "Influence",
+  "name": "The Game of Influence",
+  "start_url": "/phaser/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "icons":{
+    "src":"/static/icon.png",
+    "sizes": "192x192",
+    "type": "image/png",
+    "density": 4.0
+  }
+}
