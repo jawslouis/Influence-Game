@@ -90,6 +90,9 @@ export function setupComponents() {
     settingsBg.onclick = () => {
         showSettings(false);
     };
+
+    document.querySelector('.blue .btn-grp :nth-child(2)').click();
+
 }
 
 
