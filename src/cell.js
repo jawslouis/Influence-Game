@@ -89,7 +89,7 @@ export class Cell {
                 if (this.button !== selected) {
                     let prevAlpha = prevVal > threshold ? 1 : 0;
                     this.border.alpha = prevAlpha;
-                    g.add.tween(this.border).to({alpha: 1-prevAlpha}, cell_update_time, "Linear", true);
+                    g.add.tween(this.border).to({alpha: 1-prevAlpha}, cell_update_time * 0.6, "Linear", true);
                 }
             }
 

@@ -17,8 +17,8 @@ let transitionTween = null;
 
 // const ai_time = 100;
 // export const cell_update_time = 10;
-const ai_time = 1000;
-export const cell_update_time = 1000;
+const ai_time = 500;
+export const cell_update_time = 500;
 
 const selection_time = 200;
 
@@ -84,7 +84,7 @@ function animateSelection(button) {
     tweenBorder.start();
 }
 
-export function isAiTurn(){
+export function isAiTurn() {
     return turnColor === GREEN && greenIsOn() || turnColor === BLUE && blueIsOn();
 }
 
@@ -106,10 +106,10 @@ export function animateDeselect() {
 
     colorTween.onComplete.add(() => {
         currentSelected.cell.colorTween = null;
-        checkGroup(currentSelected);
     });
 
     selected = null;
+    checkGroup(currentSelected);
     currentSelected.cell.updateBorder();
     currentSelected.cell.colorTween = colorTween;
     colorTween.start();
@@ -146,8 +146,8 @@ function animateCellUpdate(postUpdate = null) {
     }
     bmd.update();
 
-    fillData.time = gameWidth;
-    transitionTween = g.add.tween(fillData).to({time: 0}, cell_update_time, "Linear", false);
+    fillData.time = gameWidth * 0.77;
+    transitionTween = g.add.tween(fillData).to({time: gameWidth * 0.24}, cell_update_time, "Linear", false);
     // Using game width. Since pointer co-ordinates have to be used, the shader will convert from game width to 0-1 range.
     transitionTween.onComplete.add(function () {
 
@@ -167,7 +167,7 @@ function animateCellUpdate(postUpdate = null) {
 
 function checkGroup(button) {
     if (selected !== button) {
-        if (button.cell.colorTween === null && button.cell.borderTween === null) {
+        if (button.cell.borderTween === null) {
             borderGroup.remove(button, false, true);
             buttonGroup.add(button);
         }
@@ -331,7 +331,7 @@ export function startTurn() {
             if (!aiStop) {
                 endTurn();
             }
-            turnActive =false;
+            turnActive = false;
         });
     }
 

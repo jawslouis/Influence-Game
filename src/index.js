@@ -48,8 +48,6 @@ function preload() {
     g.load.image('cell_pattern', '/static/cell_pattern.png');
     g.load.image('cell_outline', '/static/cell_outline.png');
     g.load.image('end_turn', '/static/end_turn.png');
-
-
 }
 
 function rowColToHeightWidth(row, col) {
