@@ -99,7 +99,7 @@ export class Cell {
                     if (!isLoop) {
                         this.borderAlphaTween = g.add.tween(this.border).to({alpha: 1 - prevAlpha}, cell_update_time * 0.6, Phaser.Easing.Exponential.InOut, true);
                     } else {
-                        this.borderAlphaTween = g.add.tween(this.border).to({alpha: 1 - prevAlpha}, cell_update_time*3, Phaser.Easing.Exponential.InOut, true, 1000, -1, true);
+                        this.borderAlphaTween = g.add.tween(this.border).to({alpha: 1 - prevAlpha}, cell_update_time, Phaser.Easing.Exponential.InOut, true, 1000, 0, false);
                     }
 
                 }

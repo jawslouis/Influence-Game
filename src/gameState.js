@@ -20,6 +20,7 @@ let transitionTween = null;
 // const ai_time = 100;
 // export const cell_update_time = 10;
 const ai_time = 500;
+const ai_delay_time = 200;
 export const cell_update_time = 500;
 
 const selection_time = 200;
@@ -91,7 +92,7 @@ function animateSelection(button) {
     animateFutureState();
 }
 
-function stopAnimateFuture(){
+function stopAnimateFuture() {
     if (transitionTween !== null) {
         transitionTween.stop(false);
         transitionTween = null;
@@ -125,17 +126,18 @@ function animateFutureState() {
     updateBoard(futureCellList);
 
     if (transitionTween !== null) {
-        transitionTween.stop(false);
+        transitionTween.stop(true);
     }
 
     bmd.clear();
+    fillData.time = startFill;
     for (var i = 0; i < futureCellList.length; i++) {
         futureCellList[i].updateColor(true, true);
     }
     bmd.update();
 
-    fillData.time = startFill;
-    transitionTween = g.add.tween(fillData).to({time: endFill}, cell_update_time*3, Phaser.Easing.Exponential.InOut, true, 1000, -1, true);
+
+    transitionTween = g.add.tween(fillData).to({time: endFill}, cell_update_time, "Linear", true, 1000, 0, false);
 
 }
 
@@ -212,12 +214,13 @@ function animateCellUpdate(postUpdate = null) {
             cellList[i].updateColor(false);
         }
         fillData.time = gameWidth; // reset so the canvas will be transparent
+        transitionTween = null;
 
         if (postUpdate != null) {
             postUpdate();
         }
 
-        transitionTween = null;
+
     });
     transitionTween.start();
 }
@@ -367,6 +370,21 @@ export function undo() {
 
 export var turnActive = false;
 
+
+function startAI() {
+    var selection = findBestCell();
+
+    selectButton(selection.button);
+
+    g.time.events.add(ai_time, function () {
+
+        if (!aiStop) {
+            endTurn();
+        }
+        turnActive = false;
+    });
+}
+
 export function startTurn() {
 
     if (turnActive) return; // do nothing, turn already in progress
@@ -380,17 +398,9 @@ export function startTurn() {
             animateDeselect();
         }
 
-        var selection = findBestCell();
-
-        selectButton(selection.button);
-
-        g.time.events.add(ai_time, function () {
-
-            if (!aiStop) {
-                endTurn();
-            }
-            turnActive = false;
-        });
+        if (ai_delay_time > 0) {
+            g.time.events.add(ai_delay_time, startAI);
+        } else startAI();
     }
 
 }
