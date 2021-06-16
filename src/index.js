@@ -68,6 +68,11 @@ var spriteCellInner;
 
 function pointerUp(pointer) {
 
+    if (!pointer.withinGame) {
+        // pointer is outside the board. do nothing
+        return;
+    }
+
     if (isAiTurn()) return;
 
     if (selected !== null) endTurn();
