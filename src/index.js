@@ -1,7 +1,15 @@
 import {Cell} from "./cell";
 import {createUI} from "./animateTransition";
 import {setupComponents, updateElements} from "./uiComponents";
-import {animateDeselect, cellList, endTurn, fillData, isAiTurn, selectButton, selected} from "./gameState";
+import {
+    animateDeselect,
+    cellList,
+    endTurn,
+    fillData,
+    isAiTurn,
+    selectButton,
+    selected
+} from "./gameState";
 import {gameHeight, gameWidth, GREEN} from "./utilities";
 import {phaserMod} from "./phaserMod";
 
@@ -90,6 +98,8 @@ function linkNeighbors(cell1, cell2) {
     cell2.neighbors.push(cell1);
 }
 
+
+
 function create() {
     g.stage.backgroundColor = BACKGROUND;
     g.input.maxPointers = 1;
@@ -170,7 +180,6 @@ function create() {
             borderGroup.add(cellBorder);
 
             var cell = new Cell(cellButton, cellBorder, cellList.length);
-            cell.fillPattern = fillPattern;
             cellButton.cell = cell;
             grid[col].push(cell);
             cellList.push(cell);
@@ -228,7 +237,7 @@ function create() {
 }
 
 var filter;
-var fillPattern;
+export var fillPattern;
 
 
 function update() {

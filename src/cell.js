@@ -20,6 +20,7 @@ export class Cell {
         this.colorTween = null;
         this.buttonTween = null;
         this.borderTween = null;
+        this.borderAlphaTween = null;
         this.inputOver = false;
 
     }
@@ -55,7 +56,7 @@ export class Cell {
         return Math.abs(this.value) > threshold;
     }
 
-    setValue(val){
+    setValue(val) {
         this.prevValue = this.value;
         this.value = val;
     }
@@ -73,23 +74,34 @@ export class Cell {
         this.nextValue = Math.max(Math.min(neighborAvg * 0.3 + this.value, 1), -1);
     }
 
-    updateColor(animate) {
+    updateColor(animate, isLoop = false) {
 
-        let cellColor = this.button === selected? valToColor(turnValue()) : valToColor(this.value);
+        let cellColor = this.button === selected ? valToColor(turnValue()) : valToColor(this.value);
 
         this.updateBorder();
 
         if (animate && this.prevValue !== this.value) {
             // animate the transition
+
             calculateFill(this, cellColor);
 
             let val = Math.abs(this.value), prevVal = Math.abs(this.prevValue);
-            if (val > threshold && prevVal <= threshold || val <= threshold && prevVal > threshold){
+            if (val > threshold && prevVal <= threshold || val <= threshold && prevVal > threshold) {
                 // border appeared/disappeared. animate the change
                 if (this.button !== selected) {
                     let prevAlpha = prevVal > threshold ? 1 : 0;
                     this.border.alpha = prevAlpha;
-                    g.add.tween(this.border).to({alpha: 1-prevAlpha}, cell_update_time * 0.6, "Linear", true);
+
+                    if (this.borderAlphaTween !== null) {
+                        this.borderAlphaTween.stop(false);
+                    }
+
+                    if (!isLoop) {
+                        this.borderAlphaTween = g.add.tween(this.border).to({alpha: 1 - prevAlpha}, cell_update_time * 0.6, Phaser.Easing.Exponential.InOut, true);
+                    } else {
+                        this.borderAlphaTween = g.add.tween(this.border).to({alpha: 1 - prevAlpha}, cell_update_time*3, Phaser.Easing.Exponential.InOut, true, 1000, -1, true);
+                    }
+
                 }
             }
 
@@ -100,7 +112,7 @@ export class Cell {
     }
 
     fillPrevColor() {
-        let colorValue = this.button === selected? turnValue() : this.prevValue;
+        let colorValue = this.button === selected ? turnValue() : this.prevValue;
         this.button.tint = valToColor(colorValue);
     }
 

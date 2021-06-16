@@ -1,5 +1,5 @@
 import {Cell} from "./cell";
-import {cellList, turnColor, turnValue, updateBoard} from "./gameState";
+import {cellList, copyBoard, turnColor, turnValue, updateBoard} from "./gameState";
 import {GREEN} from "./utilities";
 
 let aiGreen = 'None';
@@ -54,19 +54,7 @@ export function findBestCell() {
 
     if (simulBoard.length < 1) {
         // create a copy of the game board
-        for (var i = 0; i < cellList.length; i++) {
-            var c = new Cell(null, null, i);
-
-            simulBoard.push(c);
-        }
-
-        for (var i = 0; i < cellList.length; i++) {
-            var c = cellList[i];
-            for (var j = 0; j < cellList[i].neighbors.length; j++) {
-                var idx = cellList[i].neighbors[j].index;
-                simulBoard[i].neighbors.push(simulBoard[idx]);
-            }
-        }
+        simulBoard = copyBoard(cellList);
     }
 
     let scoreList = [];

@@ -2,6 +2,7 @@ import {BLUE, gameWidth, getColorBandFromValue, GREEN} from "./utilities";
 import {bmd, g, borderGroup, buttonGroup} from "./index";
 import {blueIsOn, greenIsOn, findBestCell} from "./ai";
 import {closeOverlays, setScore, showGameOver, updateElements} from "./uiComponents";
+import {Cell} from "./cell";
 
 
 export const GREEN_BORDER = 0x05520c;
@@ -11,6 +12,7 @@ export var selected = null;
 export var turnColor = GREEN;
 export var currentTurn = 1;
 export var cellList = [];
+export var futureCellList = null;
 export var fillData = {time: gameWidth};
 export var turnBorderColor = GREEN_BORDER;
 let transitionTween = null;
@@ -21,6 +23,9 @@ const ai_time = 500;
 export const cell_update_time = 500;
 
 const selection_time = 200;
+
+const startFill = gameWidth * 0.77;
+const endFill = gameWidth * 0.24;
 
 export function turnValue() {
 
@@ -82,7 +87,58 @@ function animateSelection(button) {
     });
     button.cell.borderTween = tweenBorder;
     tweenBorder.start();
+
+    animateFutureState();
 }
+
+function stopAnimateFuture(){
+    if (transitionTween !== null) {
+        transitionTween.stop(false);
+        transitionTween = null;
+    }
+    fillData.time = gameWidth; // no fill
+
+    futureCellList.forEach(cell => {
+        if (cell.borderAlphaTween !== null) {
+
+            cell.borderAlphaTween.stop(false);
+            cell.borderAlphaTween = null;
+            cell.value = cell.prevValue;
+            cell.updateBorder();
+        }
+    })
+}
+
+function animateFutureState() {
+
+    if (selected === null) throw 'Error: Cell needs to be selected';
+
+    if (futureCellList === null)
+        futureCellList = copyBoard(cellList);
+
+    cellList.forEach(cell => {
+        futureCellList[cell.index].value = cell.value;
+    });
+
+    futureCellList[selected.cell.index].value = turnValue();
+
+    updateBoard(futureCellList);
+
+    if (transitionTween !== null) {
+        transitionTween.stop(false);
+    }
+
+    bmd.clear();
+    for (var i = 0; i < futureCellList.length; i++) {
+        futureCellList[i].updateColor(true, true);
+    }
+    bmd.update();
+
+    fillData.time = startFill;
+    transitionTween = g.add.tween(fillData).to({time: endFill}, cell_update_time*3, Phaser.Easing.Exponential.InOut, true, 1000, -1, true);
+
+}
+
 
 export function isAiTurn() {
     return turnColor === GREEN && greenIsOn() || turnColor === BLUE && blueIsOn();
@@ -109,6 +165,7 @@ export function animateDeselect() {
     });
 
     selected = null;
+    stopAnimateFuture();
     checkGroup(currentSelected);
     currentSelected.cell.updateBorder();
     currentSelected.cell.colorTween = colorTween;
@@ -146,8 +203,8 @@ function animateCellUpdate(postUpdate = null) {
     }
     bmd.update();
 
-    fillData.time = gameWidth * 0.77;
-    transitionTween = g.add.tween(fillData).to({time: gameWidth * 0.24}, cell_update_time, "Linear", false);
+    fillData.time = startFill;
+    transitionTween = g.add.tween(fillData).to({time: endFill}, cell_update_time, "Linear", false);
     // Using game width. Since pointer co-ordinates have to be used, the shader will convert from game width to 0-1 range.
     transitionTween.onComplete.add(function () {
 
@@ -178,6 +235,7 @@ function deselect() {
     let oldSelected = selected;
     selected = null;
     checkGroup(oldSelected);
+    stopAnimateFuture();
 }
 
 export function endTurn() {
@@ -357,4 +415,20 @@ export function updateBoard(board) {
         }
     }
     return ended;
+}
+
+export function copyBoard(original) {
+
+    let copy = original.map(cell => {
+        return new Cell(cell.button, cell.border, cell.index);
+    });
+
+    for (var i = 0; i < original.length; i++) {
+        for (var j = 0; j < original[i].neighbors.length; j++) {
+            var idx = original[i].neighbors[j].index;
+            copy[i].neighbors.push(copy[idx]);
+        }
+    }
+
+    return copy;
 }

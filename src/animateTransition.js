@@ -4,7 +4,7 @@ Shader method is used because of speed (60FPS). Benchmarks for other approaches:
 - Identifying the hexagon using math in ProcessPixels: 15 FPS
 - Identifying hexagon using containers in ProcessPixels: 2 FPS
  */
-import {bmd} from "./index";
+import {bmd, fillPattern} from "./index";
 import {gameHeight, gameWidth} from "./utilities";
 
 var fragmentSrc = [
@@ -78,7 +78,6 @@ export function calculateFill(cell, cellColor) {
             delta += Math.abs(cell.prevValue - n.prevValue);
         }
     }
-    let fillPattern = cell.fillPattern;
 
     fillPattern.tint = cellColor;
 
