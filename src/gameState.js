@@ -1,8 +1,9 @@
-import {BLUE, gameWidth, getColorBandFromValue, GREEN} from "./utilities";
-import {bmd, g, borderGroup, buttonGroup} from "./index";
-import {blueIsOn, greenIsOn, findBestCell} from "./ai";
+import {BLUE, gameWidth, GREEN} from "./utilities";
+import {g} from "./index";
+import {blueIsOn, findBestCell, greenIsOn} from "./ai";
 import {closeOverlays, setScore, showGameOver, updateElements} from "./uiComponents";
-import {Cell} from "./cell";
+import {Cell, valToScale} from "./cell";
+import {animateCellUpdate, animateDeselect, animateSelection, checkGroup, stopAnimateFuture} from "./animateSelect";
 
 
 export const GREEN_BORDER = 0x05520c;
@@ -12,10 +13,12 @@ export var selected = null;
 export var turnColor = GREEN;
 export var currentTurn = 1;
 export var cellList = [];
-export var futureCellList = null;
+
 export var fillData = {time: gameWidth};
 export var turnBorderColor = GREEN_BORDER;
-let transitionTween = null;
+export const threshold = 0.5;
+
+export const thresholdScale = valToScale(threshold);
 
 // const ai_time = 100;
 // export const cell_update_time = 10;
@@ -23,10 +26,6 @@ const ai_time = 500;
 const ai_delay_time = 200;
 export const cell_update_time = 500;
 
-const selection_time = 200;
-
-const startFill = gameWidth * 0.77;
-const endFill = gameWidth * 0.24;
 
 export function turnValue() {
 
@@ -41,138 +40,9 @@ export function turnValue() {
 
 export const setAiStop = (val) => aiStop = val;
 
-function animateSelection(button) {
-
-    if (button.cell.colorTween !== null) {
-        button.cell.colorTween.stop(true);
-        button.cell.colorTween = null;
-    }
-
-    if (button.cell.borderTween !== null) {
-        button.cell.borderTween.stop(true);
-        button.cell.borderTween = null;
-    }
-    if (button.cell.buttonTween !== null) {
-        button.cell.buttonTween.stop(true);
-        button.cell.buttonTween = null;
-    }
-
-    // change groups, so that button can go over neighboring borders
-    buttonGroup.remove(button, false, true);
-    borderGroup.add(button);
-
-    button.bringToTop();
-    button.cell.border.bringToTop();
-
-    // select button
-    selected = button;
-    button.cell.updateColor(false);
-
-    // animate selection
-
-    button.scale.setTo(1, 1);
-    let tweenButton = g.add.tween(button.scale).to({
-        x: 1.5,
-        y: 1.5
-    }, selection_time, Phaser.Easing.Quadratic.Out, true).yoyo(true);
-    button.cell.buttonTween = tweenButton;
-
-    button.cell.border.scale.setTo(1, 1);
-    let tweenBorder = g.add.tween(button.cell.border.scale).to({
-        x: 1.5,
-        y: 1.5
-    }, selection_time, Phaser.Easing.Quadratic.Out, false).yoyo(true);
-    tweenBorder.onComplete.add(function () {
-        button.cell.borderTween = null;
-        checkGroup(button);
-    });
-    button.cell.borderTween = tweenBorder;
-    tweenBorder.start();
-
-    animateFutureState();
-}
-
-function stopAnimateFuture() {
-    if (transitionTween !== null) {
-        transitionTween.stop(false);
-        transitionTween = null;
-    }
-    fillData.time = gameWidth; // no fill
-
-    futureCellList.forEach(cell => {
-        if (cell.borderAlphaTween !== null) {
-
-            cell.borderAlphaTween.stop(false);
-            cell.borderAlphaTween = null;
-            cell.value = cell.prevValue;
-            cell.updateBorder();
-        }
-    })
-}
-
-function animateFutureState() {
-
-    if (selected === null) throw 'Error: Cell needs to be selected';
-
-    if (futureCellList === null)
-        futureCellList = copyBoard(cellList);
-
-    cellList.forEach(cell => {
-        futureCellList[cell.index].value = cell.value;
-    });
-
-    futureCellList[selected.cell.index].value = turnValue();
-
-    updateBoard(futureCellList);
-
-    if (transitionTween !== null) {
-        transitionTween.stop(true);
-    }
-
-    bmd.clear();
-    fillData.time = startFill;
-    for (var i = 0; i < futureCellList.length; i++) {
-        futureCellList[i].updateColor(true, true);
-    }
-    bmd.update();
-
-
-    transitionTween = g.add.tween(fillData).to({time: endFill}, cell_update_time, "Linear", true, 1000, 0, false);
-
-}
-
 
 export function isAiTurn() {
     return turnColor === GREEN && greenIsOn() || turnColor === BLUE && blueIsOn();
-}
-
-export function animateDeselect() {
-    // transition color back to original
-
-    if (selected == null) return;
-
-    let currentSelected = selected; // needed to keep track of reference
-    let colorBlend = {val: 0};
-
-    let colorBand = getColorBandFromValue(turnValue(), currentSelected.cell.value);
-
-    let colorTween = g.add.tween(colorBlend).to({val: 100}, 1000, Phaser.Easing.Quadratic.Out);
-
-    colorTween.onUpdateCallback(() => {
-        currentSelected.tint = colorBand(colorBlend.val);
-    });
-
-    colorTween.onComplete.add(() => {
-        currentSelected.cell.colorTween = null;
-    });
-
-    selected = null;
-    stopAnimateFuture();
-    checkGroup(currentSelected);
-    currentSelected.cell.updateBorder();
-    currentSelected.cell.colorTween = colorTween;
-    colorTween.start();
-
 }
 
 export function selectButton(button) {
@@ -183,62 +53,23 @@ export function selectButton(button) {
         // cannot select this cell
         return;
     }
-    animateSelection(button);
+    selected = button;
+    animateSelection();
 }
 
 var needsUpdate = true;
 var boardHistory = [];
 
-function animateCellUpdate(postUpdate = null) {
-
-    if (transitionTween !== null) {
-        transitionTween.stop(false);
-        cellList.forEach(cell => {
-            cell.fillPrevColor();
-        });
-        transitionTween = null;
-    }
-
-    bmd.clear();
-    for (var i = 0; i < cellList.length; i++) {
-        cellList[i].updateColor(true);
-    }
-    bmd.update();
-
-    fillData.time = startFill;
-    transitionTween = g.add.tween(fillData).to({time: endFill}, cell_update_time, "Linear", false);
-    // Using game width. Since pointer co-ordinates have to be used, the shader will convert from game width to 0-1 range.
-    transitionTween.onComplete.add(function () {
-
-        for (var i = 0; i < cellList.length; i++) {
-            cellList[i].updateColor(false);
-        }
-        fillData.time = gameWidth; // reset so the canvas will be transparent
-        transitionTween = null;
-
-        if (postUpdate != null) {
-            postUpdate();
-        }
-
-
-    });
-    transitionTween.start();
-}
-
-function checkGroup(button) {
-    if (selected !== button) {
-        if (button.cell.borderTween === null) {
-            borderGroup.remove(button, false, true);
-            buttonGroup.add(button);
-        }
-    }
-}
 
 function deselect() {
     let oldSelected = selected;
     selected = null;
     checkGroup(oldSelected);
     stopAnimateFuture();
+}
+
+export function setSelected(val) {
+    selected = val;
 }
 
 export function endTurn() {
@@ -318,6 +149,7 @@ function resetItems() {
     animateDeselect();
     updateElements();
 }
+
 
 export function restart() {
 

@@ -5,7 +5,8 @@ Shader method is used because of speed (60FPS). Benchmarks for other approaches:
 - Identifying hexagon using containers in ProcessPixels: 2 FPS
  */
 import {bmd, fillPattern} from "./index";
-import {gameHeight, gameWidth} from "./utilities";
+import {gameHeight, gameWidth, valToColor} from "./utilities";
+import {valToScale} from "./cell";
 
 var fragmentSrc = [
 
@@ -66,7 +67,7 @@ function getRandomInt(min, max) {
 }
 
 
-export function calculateFill(cell, cellColor) {
+export function calculateFill(cell, cellVal) {
 // figure out which are our influencers
     var influencers = [];
     var delta = 0;
@@ -79,7 +80,11 @@ export function calculateFill(cell, cellColor) {
         }
     }
 
+    let cellColor = valToColor(cellVal);
     fillPattern.tint = cellColor;
+    let cellScale = valToScale(cellVal);
+    fillPattern.scale.setTo(cellScale);
+
 
     if (influencers.length === 0) {
         // we are probably restarting. randomly choose an angle

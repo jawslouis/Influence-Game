@@ -1,17 +1,18 @@
-import {Cell} from "./cell";
+import {Cell, valToScale} from "./cell";
 import {createUI} from "./animateTransition";
 import {setupComponents, updateElements} from "./uiComponents";
 import {
-    animateDeselect,
     cellList,
     endTurn,
     fillData,
     isAiTurn,
     selectButton,
-    selected
+    selected,
+    threshold, thresholdScale
 } from "./gameState";
 import {gameHeight, gameWidth, GREEN} from "./utilities";
 import {phaserMod} from "./phaserMod";
+import {animateDeselect} from "./animateSelect";
 
 
 export var bmd;
@@ -87,7 +88,7 @@ function pointerUp(pointer) {
     cellList.forEach(cell => {
         if (cell.inputOver) {
             // console.log(`Invoked pointerout for cell ${cell.index}`);
-            cell.button.input._pointerOutHandler(pointer, false);
+            cell.inputImg.input._pointerOutHandler(pointer, false);
             cell.inputOver = false;
         }
     });
@@ -99,19 +100,21 @@ function linkNeighbors(cell1, cell2) {
 }
 
 
-
 function create() {
     g.stage.backgroundColor = BACKGROUND;
     g.input.maxPointers = 1;
     g.input.onUp.add(pointerUp);
 
     var grid = [];
-    grid_height = g.cache.getImage('cell_border').height;
+    grid_height = g.cache.getImage('cell_inner').height;
     grid_width = grid_height * 0.855;
 
-    var bmdOutline = g.make.bitmapData(gameWidth, gameHeight);
+    var bmdBackground = g.make.bitmapData(gameWidth, gameHeight);
     var cellOutline = g.make.sprite(0, 0, 'cell_outline');
     cellOutline.anchor.setTo(0.5, 0.5);
+    var smallCellOutline = g.make.sprite(0, 0, 'cell_outline');
+    smallCellOutline.anchor.setTo(0.5, 0.5);
+    smallCellOutline.scale.setTo(thresholdScale);
 
     // create animation
     bmd = g.make.bitmapData(gameWidth, gameHeight);
@@ -122,8 +125,12 @@ function create() {
     spriteCellInner = g.make.sprite(0, 200, 'cell_inner');
     spriteCellInner.anchor.setTo(0.5, 0.5);
 
+    var bgTile = g.make.sprite(0, 0, 'cell_bg');
+    bgTile.anchor.setTo(0.5, 0.5);
+
     buttonGroup = g.add.group();
     borderGroup = g.add.group();
+    let inputGroup = g.add.group();
     let textGroup = g.add.group();
 
     var style = {
@@ -135,57 +142,112 @@ function create() {
     };
 
 
+    const numCols = 9;
+    const numRows = 6;
+
+    for (let col = 0; col < 9; col++) {
+        for (let row = 0; row < 6; row++) {
+
+            if (col % 2 === 1 && row === 5) break;
+
+            var hwTuple = rowColToHeightWidth(row, col);
+            var height = hwTuple.y;
+            var width = hwTuple.x;
+            bmdBackground.draw(bgTile, width, height);
+
+        }
+    }
+
+
+    // paint over gaps between cells
+    let tuple1 = rowColToHeightWidth(0, 0);
+    let tuple2 = rowColToHeightWidth(0, 1);
+
+    let heightOffset = tuple2.y - tuple1.y;
+    let widthOffset = (tuple2.x - tuple1.x) / 3;
+
+    spriteCellInner.scale.setTo(0.5);
+    for (let col = 0; col < 9; col++) {
+        for (let row = 0; row < 5; row++) {
+            // figure out coordinates for bottom 2 corners. need to paint over the gaps there.
+
+            if (row === 4 && col % 2 === 1) break;
+
+            var hwTuple = rowColToHeightWidth(row, col);
+            var height = hwTuple.y;
+            var width = hwTuple.x;
+
+            if (col !== 0) {
+                // bottom left
+                bmdBackground.draw(spriteCellInner, width - widthOffset, height + heightOffset);
+            }
+            if (col !== 8) {
+                bmdBackground.draw(spriteCellInner, width + widthOffset, height + heightOffset);
+            }
+
+        }
+    }
+    spriteCellInner.scale.setTo(1);
+
     // create a hex grid
     for (var col = 0; col < 9; col++) {
 
         grid.push([]);
         for (var row = 0; row < 6; row++) {
 
-            if (col % 2 === 1) {
-                if (row === 5) break;
-            }
+            if (col % 2 === 1 && row === 5) break;
+
             var hwTuple = rowColToHeightWidth(row, col);
             var height = hwTuple.y;
             var width = hwTuple.x;
 
-            let cellButton = g.add.button(width, height, 'cell_inner');
+            let cellButton = g.add.image(width, height, 'cell_inner');
             cellButton.anchor.setTo(0.5, 0.5);
-            cellButton.inputEnabled = true;
+            buttonGroup.add(cellButton);
 
-            cellButton.events.onInputOver.add((button) => {
-                // console.log("Over: Cell " + button.cell.index);
+            let cellInput = g.add.image(width, height, 'cell_inner');
+            cellInput.inputEnabled = true;
+            cellInput.input.useHandCursor = true;
+            cellInput.anchor.setTo(0.5, 0.5);
+            cellInput.alpha = 0;
+            cellInput.events.onInputOver.add(() => {
+                // console.log("Over: Cell " + cellButton.cell.index);
 
                 if (isAiTurn()) return;
 
-                button.cell.inputOver = true;
-                selectButton(button);
+                cellButton.cell.inputOver = true;
+                selectButton(cellButton);
             }, this);
-            cellButton.onInputOut.add((button, pointer) => {
+            cellInput.events.onInputOut.add(() => {
                 // console.log(`Out: Cell ${button.cell.index}, Pointer ${pointer.id}`);
 
                 if (isAiTurn()) return;
 
-                button.cell.inputOver = false;
-                if (selected === button) {
+                cellButton.cell.inputOver = false;
+                if (selected === cellButton) {
                     animateDeselect();
                 }
             }, this);
 
-            buttonGroup.add(cellButton);
-            bmdOutline.draw(cellOutline, width, height);
+            inputGroup.add(cellInput);
 
-            var cellBorder = g.add.sprite(width, height, 'cell_border');
+
+            bmdBackground.draw(spriteCellInner, width, height);
+            bmdBackground.draw(smallCellOutline, width, height);
+
+            var cellBorder = g.add.image(width, height, 'cell_outline');
             cellBorder.anchor.setTo(0.5, 0.5);
+            cellBorder.scale.setTo(thresholdScale);
             cellBorder.alpha = 0;
             borderGroup.add(cellBorder);
 
             var cell = new Cell(cellButton, cellBorder, cellList.length);
+            cell.inputImg = cellInput;
+            cell.updateScale();
             cellButton.cell = cell;
             grid[col].push(cell);
             cellList.push(cell);
 
-            var bgTile = g.add.sprite(width, height, 'cell_bg');
-            bgTile.anchor.setTo(0.5, 0.5);
 
             if (showCellNum) {
                 let text = g.add.text(width, height, cell.index, style);
@@ -221,13 +283,16 @@ function create() {
         }
     }
 
-    g.world.bringToTop(buttonGroup);
 
     bmd.update();
+
+    bmdBackground.addToWorld(0, 0, 0, 0, 1, 1);
+    g.world.bringToTop(buttonGroup);
+
     filter = createUI(g, bmd);
-    bmdOutline.addToWorld(0, 0, 0, 0, 1, 1);
 
     g.world.bringToTop(borderGroup);
+    g.world.bringToTop(inputGroup);
 
     if (showCellNum)
         g.world.bringToTop(textGroup);

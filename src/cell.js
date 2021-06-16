@@ -1,11 +1,20 @@
 import {valToColor} from "./utilities";
 import {calculateFill} from "./animateTransition";
-import {BLUE_BORDER, cell_update_time, fillData, GREEN_BORDER, selected, turnBorderColor, turnValue} from "./gameState";
+import {
+    BLUE_BORDER,
+    cell_update_time,
+    fillData,
+    GREEN_BORDER,
+    selected,
+    threshold,
+    turnBorderColor,
+    turnValue
+} from "./gameState";
 import {g} from "./index";
 
-
-const threshold = 0.5;
-
+export function valToScale(val) {
+    return Math.abs(val) * 0.6 + 0.4;
+}
 
 export class Cell {
 
@@ -74,16 +83,30 @@ export class Cell {
         this.nextValue = Math.max(Math.min(neighborAvg * 0.3 + this.value, 1), -1);
     }
 
-    updateColor(animate, isLoop = false) {
+    updateScale(animate = false, isFast = false) {
+        if (animate) return;
 
-        let cellColor = this.button === selected ? valToColor(turnValue()) : valToColor(this.value);
+        let cellScale = valToScale(this.value);
+        this.button.scale.setTo(cellScale);
+    }
 
+    updateDisplay(animate) {
+        this.updateColor(animate);
+        this.updateScale(animate);
+        this.updateBorder(animate);
+    }
+
+    updateColor(animate, isFast = false) {
+
+        let cellVal = this.button === selected ? turnValue() : this.value;
+
+        this.updateScale(animate, isFast);
         this.updateBorder();
 
         if (animate && this.prevValue !== this.value) {
             // animate the transition
 
-            calculateFill(this, cellColor);
+            calculateFill(this, cellVal);
 
             let val = Math.abs(this.value), prevVal = Math.abs(this.prevValue);
             if (val > threshold && prevVal <= threshold || val <= threshold && prevVal > threshold) {
@@ -96,17 +119,17 @@ export class Cell {
                         this.borderAlphaTween.stop(false);
                     }
 
-                    if (!isLoop) {
+                    if (!isFast) {
                         this.borderAlphaTween = g.add.tween(this.border).to({alpha: 1 - prevAlpha}, cell_update_time * 0.6, Phaser.Easing.Exponential.InOut, true);
                     } else {
-                        this.borderAlphaTween = g.add.tween(this.border).to({alpha: 1 - prevAlpha}, cell_update_time, Phaser.Easing.Exponential.InOut, true, 1000, 0, false);
+                        this.borderAlphaTween = g.add.tween(this.border).to({alpha: 1 - prevAlpha}, cell_update_time, Phaser.Easing.Exponential.InOut, true, 0, 0, false);
                     }
 
                 }
             }
 
         } else {
-            this.button.tint = cellColor;
+            this.button.tint = valToColor(cellVal);
         }
 
     }
