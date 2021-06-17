@@ -1,9 +1,10 @@
 import {BLUE, gameWidth, GREEN} from "./utilities";
 import {g} from "./index";
 import {blueIsOn, findBestCell, greenIsOn} from "./ai";
+
+import {valToScale} from "./cell";
 import {closeOverlays, setScore, showGameOver, updateElements} from "./uiComponents";
-import {Cell, valToScale} from "./cell";
-import {animateCellUpdate, animateDeselect, animateSelection, checkGroup, stopAnimateFuture} from "./animateSelect";
+import {animateCellUpdate, animateDeselect, animateSelect, checkGroup, stopAnimateFuture} from "./animateSelect";
 
 
 export const GREEN_BORDER = 0x05520c;
@@ -16,9 +17,7 @@ export var cellList = [];
 
 export var fillData = {time: gameWidth};
 export var turnBorderColor = GREEN_BORDER;
-export const threshold = 0.5;
 
-export const thresholdScale = valToScale(threshold);
 
 // const ai_time = 100;
 // export const cell_update_time = 10;
@@ -54,7 +53,7 @@ export function selectButton(button) {
         return;
     }
     selected = button;
-    animateSelection();
+    animateSelect();
 }
 
 var needsUpdate = true;
@@ -261,9 +260,7 @@ export function updateBoard(board) {
 
 export function copyBoard(original) {
 
-    let copy = original.map(cell => {
-        return new Cell(cell.button, cell.border, cell.index);
-    });
+    let copy = original.map(cell => cell.copyCell());
 
     for (var i = 0; i < original.length; i++) {
         for (var j = 0; j < original[i].neighbors.length; j++) {

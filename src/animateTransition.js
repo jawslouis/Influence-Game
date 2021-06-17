@@ -4,9 +4,9 @@ Shader method is used because of speed (60FPS). Benchmarks for other approaches:
 - Identifying the hexagon using math in ProcessPixels: 15 FPS
 - Identifying hexagon using containers in ProcessPixels: 2 FPS
  */
-import {bmd, fillPattern} from "./index";
+import {bmdDecrease, bmdIncrease, fillPattern} from "./index";
 import {gameHeight, gameWidth, valToColor} from "./utilities";
-import {valToScale} from "./cell";
+import {valToScale} from "./utilities";
 
 var fragmentSrc = [
 
@@ -38,7 +38,6 @@ var fragmentSrc = [
     "}"
 ];
 
-
 export function createUI(g, bmd) {
     var sprite = g.add.sprite(0, 0, bmd);
     sprite.width = bmd.width;
@@ -47,7 +46,6 @@ export function createUI(g, bmd) {
     var customUniforms = {
         iChannel0: {type: 'sampler2D', value: sprite.texture, textureData: {repeat: false}},
     };
-
 
     var filter = new Phaser.Filter(g, customUniforms, fragmentSrc);
     filter.setResolution(gameWidth, gameHeight);
@@ -80,24 +78,40 @@ export function calculateFill(cell, cellVal) {
         }
     }
 
-    let cellColor = valToColor(cellVal);
+    let currScale = valToScale(cellVal);
+    let prevScale = valToScale(cell.prevValue);
+    let isIncreasing = currScale > prevScale;
+
+    let cellColor, cellScale;
+
+    if (isIncreasing) {
+        cellColor = valToColor(cellVal);
+        cellScale = currScale;
+    } else {
+        cellColor = valToColor(cell.prevValue);
+        cellScale = prevScale;
+    }
+
     fillPattern.tint = cellColor;
-    let cellScale = valToScale(cellVal);
     fillPattern.scale.setTo(cellScale);
 
+
+    function drawBmd(pattern) {
+        let bmd = isIncreasing ? bmdIncrease : bmdDecrease;
+        bmd.draw(pattern, cell.button.x, cell.button.y);
+    }
 
     if (influencers.length === 0) {
         // we are probably restarting. randomly choose an angle
 
         fillPattern.alpha = 1.0;
         fillPattern.angle = getRandomInt(0, 5) * 60;
-        bmd.draw(fillPattern, cell.button.x, cell.button.y);
+        drawBmd(fillPattern);
         return;
 
     }
 
     // figure out the direction of influencers
-
     for (var i = 0; i < influencers.length; i++) {
         var inf = influencers[i];
 
@@ -122,8 +136,13 @@ export function calculateFill(cell, cellVal) {
             fillPattern.angle = 300;
         }
 
+        if (!isIncreasing) {
+            // reverse the direction
+            fillPattern.angle += 180;
+        }
+
         fillPattern.alpha = Math.abs(inf.prevValue - cell.prevValue) / delta;
-        bmd.draw(fillPattern, cell.button.x, cell.button.y);
+        drawBmd(fillPattern);
 
     }
 }

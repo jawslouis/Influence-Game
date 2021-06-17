@@ -35,3 +35,16 @@ export function getColorBandFromValue(startValue, endValue) {
 function createColorInterpolation(startColor, endColor) {
     return (value) => interpolateColor(startColor, endColor, 100, value);
 }
+
+export const threshold = 0.5;
+export const thresholdScale = valToScale(threshold);
+
+export function valToScale(value) {
+    // return Math.min(Math.abs(val) + 0.5, 1);
+    let val = Math.abs(value);
+
+    if (val >= threshold)
+        return 1 - (val - threshold);
+
+    else return val + (1-threshold);
+}
