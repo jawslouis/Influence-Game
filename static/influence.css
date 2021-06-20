@@ -11,6 +11,7 @@ body {
 #game-container {
     display: flex;
     justify-content: center;
+    padding-top: 0.5em;
 }
 
 .game-row {
@@ -32,8 +33,16 @@ body {
     margin-bottom: 0.5em;
 }
 
+.bold {
+    font-weight: bold;
+}
+
 .title-spacer {
     margin-bottom: 0.2em;
+}
+
+.arrow {
+    height: 120px;
 }
 
 .vertical-pad {
@@ -305,6 +314,15 @@ a .no-underline {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.flex-row img {
+    flex: initial;
+    min-width: 0;
+}
+
+p.no-bottom-margin {
+    margin-bottom: 0;
 }
 
 .green .label {

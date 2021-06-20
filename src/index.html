@@ -103,8 +103,25 @@
     <p class="para-text">The game ends when all tiles pass the color threshold. The player with the most colored tiles
         wins!</p>
 
-    <h3 class="title-spacer">AI</h3>
-    <p class="para-text">Change the difficulty or color of the AI player in the settings menu. To play against a friend, simply disable the AI for both colors.</p>
+    <p class="para-text">You now have enough information to <a href="#game-container">start playing</a>. Or read on for
+        more details about the game.</p>
+
+    <h3 class="title-spacer">Additional Info</h3>
+    <p class="para-text no-bottom-margin"><span class="bold">Threshold:</span> As a tile gains more 'influence', its colored area will
+        grow in size and have a deeper color.</p>
+    <div class="flex-row"><img src="{% static 'influence\tile-10.png' %}"><img class="arrow" src="{% static 'influence\right-arrow.png' %}"><img src="{% static 'influence\tile-40.png' %}"></div>
+    <p class="para-text no-bottom-margin">Once the colored area reaches the tile's border, it can no longer be selected by the opponent and will have a
+        dark border.</p>
+    <div class="flex-row"><img src="{% static 'influence\tile-40.png' %}"><img class="arrow" src="{% static 'influence\right-arrow.png' %}"><img src="{% static 'influence\tile-threshold.png' %}"></div>
+    <p class="para-text no-bottom-margin">Growing 'influence' beyond that threshold will create a larger dark region around the border, acting as a buffer
+        against the opponent's influence.</p>
+    <div class="flex-row"><img src="{% static 'influence\tile-threshold.png' %}"><img class="arrow" src="{% static 'influence\right-arrow.png' %}"><img src="{% static 'influence\tile-80.png' %}"></div>
+    <p class="para-text"><span class="bold">Preview:</span> Hover over a tile before selecting it to preview the
+        end-of-turn 'influence' changes.</p>
+    <p class="para-text"><span class="bold">Starting tile:</span> To offset Green's first-mover advantage, Green's first
+        tile is at 55% strength.</p>
+    <p class="para-text"><span class="bold">AI:</span> Change the difficulty or color of the AI player in the settings
+        menu. To play against a friend, simply disable the AI for both colors.</p>
     <p class="para-text" style="font-style: italic;">Hint: Pit the AI against itself to pick up some strategies!</p>
 </div>
 
