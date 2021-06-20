@@ -1,4 +1,3 @@
-import {setAIBlue, setAIGreen} from "./ai";
 import {undo, restart, currentTurn, turnColor, setAiStop, startTurn} from "./gameState";
 import {GREEN} from "./utilities";
 
@@ -7,6 +6,10 @@ const BLUE_STR = '#005bd5';
 export const GREEN_CLASS = 'green';
 export const BLUE_CLASS = 'blue';
 
+export var settings = {
+    aiBlue: 'None',
+    aiGreen: 'None',
+};
 
 const tileSuffix = (score) => score === 1 ? ' tile' : ' tiles';
 
@@ -79,14 +82,14 @@ export function setupComponents() {
                 elem.classList.add('btn-selected');
 
                 if (color === GREEN_CLASS) {
-                    setAIGreen(elem.innerHTML);
-                } else setAIBlue(elem.innerHTML);
+                    settings.aiGreen = elem.innerHTML;
+                } else settings.aiBlue = elem.innerHTML;
 
             }
         };
     });
 
-    settingsBg =  document.getElementById('settings-bg');
+    settingsBg = document.getElementById('settings-bg');
     settingsBg.onclick = () => {
         showSettings(false);
     };

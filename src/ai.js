@@ -1,22 +1,15 @@
-import {Cell} from "./cell";
 import {cellList, copyBoard, turnColor, turnValue, updateBoard} from "./gameState";
 import {GREEN} from "./utilities";
-
-let aiGreen = 'None';
-let aiBlue = 'None';
-
-export const setAIGreen = (state) => aiGreen = state;
-export const setAIBlue = (state) => aiBlue = state;
-
+import {settings} from "./uiComponents";
 
 var simulBoard = [];
 
 export function greenIsOn() {
-    return aiGreen !== 'None';
+    return settings.aiGreen !== 'None';
 }
 
 export function blueIsOn() {
-    return aiBlue !== 'None';
+    return settings.aiBlue !== 'None';
 }
 
 function resetSimulation() {
@@ -89,7 +82,7 @@ export function findBestCell() {
     // sort by descending score
     scoreList.sort((a, b) => b.score - a.score);
 
-    const result = turnColor === GREEN ? difficultyToNum(aiGreen, scoreList.length) : difficultyToNum(aiBlue, scoreList.length);
+    const result = turnColor === GREEN ? difficultyToNum(settings.aiGreen, scoreList.length) : difficultyToNum(settings.aiBlue, scoreList.length);
     return scoreList[result].cell;
 
 }
