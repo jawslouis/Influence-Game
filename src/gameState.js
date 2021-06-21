@@ -243,6 +243,9 @@ export function startTurn() {
     if (turnActive) return; // do nothing, turn already in progress
 
     if (isAiTurn()) {
+
+        aiStop = false;
+
         // auto-make a move
         turnActive = true;
 
