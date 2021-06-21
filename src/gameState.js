@@ -2,7 +2,7 @@ import {BLUE, gameWidth, GREEN} from "./utilities";
 import {g} from "./index";
 import {blueIsOn, findBestCell, greenIsOn} from "./ai";
 
-import {closeOverlays, setScore, settings, showGameOver, updateElements} from "./uiComponents";
+import {closeOverlays, resultString, setScore, settings, showGameOver, updateElements} from "./uiComponents";
 import {Cell, valToScale} from "./cell";
 import {animateCellUpdate, animateDeselect, animateSelect, checkGroup, stopAnimateFuture} from "./animateSelect";
 
@@ -19,8 +19,6 @@ export var fillData = {time: gameWidth};
 export var turnBorderColor = GREEN_BORDER;
 
 
-// const ai_time = 100;
-// export const cell_update_time = 10;
 const ai_time = 500;
 const ai_delay_time = 200;
 export const cell_update_time = 500;
@@ -73,9 +71,16 @@ export function setSelected(val) {
 }
 
 export function sendAnalytics(action) {
+
+    let data = {...settings};
+
+    if (action === 'end') {
+        data.result = resultString;
+    }
+
     gtag('event', action, {
         'event_category': 'influence',
-        'event_label': JSON.stringify(settings),
+        'event_label': JSON.stringify(data),
     });
 }
 
@@ -145,8 +150,8 @@ export function endTurn() {
 
     if (ended) {
         aiStop = true;
-        sendAnalytics('end');
         showGameOver(greenScore, blueScore);
+        sendAnalytics('end');
         return;
     }
 

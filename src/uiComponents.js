@@ -35,21 +35,23 @@ export function updateElements() {
 }
 
 let gameOverOverlay, settingsOverlay;
+export var resultString;
 
 export function showGameOver(greenScore, blueScore) {
     let winDiv = document.getElementById("winner");
 
     if (greenScore > blueScore) {
-        winDiv.innerHTML = "Green Wins!";
+        resultString = "Green Wins!";
         winDiv.style.color = GREEN_STR;
     } else if (blueScore > greenScore) {
-        winDiv.innerHTML = "Blue Wins!";
+        resultString = "Blue Wins!";
         winDiv.style.color = BLUE_STR;
     } else {
         //tie
-        winDiv.innerHTML = "It's a Tie!";
+        resultString = "It's a Tie!";
         winDiv.style.color = 'gray';
     }
+    winDiv.innerHTML = resultString;
     gameOverOverlay.classList.remove('hidden');
 }
 
