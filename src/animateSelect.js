@@ -103,15 +103,17 @@ export function stopAnimateFuture() {
 
     clearBmd(true);
 
-    futureCellList.forEach(cell => {
-        if (cell.borderAlphaTween !== null) {
+    if (futureCellList !== null) {
+        futureCellList.forEach(cell => {
+            if (cell.borderAlphaTween !== null) {
 
-            cell.borderAlphaTween.stop(false);
-            cell.borderAlphaTween = null;
-            cell.value = cell.prevValue;
-            cell.updateBorder();
-        }
-    });
+                cell.borderAlphaTween.stop(false);
+                cell.borderAlphaTween = null;
+                cell.value = cell.prevValue;
+                cell.updateBorder();
+            }
+        });
+    }
 
     if (isFutureColor) {
         cellList.forEach(cell => {

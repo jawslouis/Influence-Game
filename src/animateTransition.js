@@ -4,9 +4,10 @@ Shader method is used because of speed (60FPS). Benchmarks for other approaches:
 - Identifying the hexagon using math in ProcessPixels: 15 FPS
 - Identifying hexagon using containers in ProcessPixels: 2 FPS
  */
-import {bmdDecrease, bmdIncrease, fillPattern} from "./index";
-import {gameHeight, gameWidth, valToColor} from "./utilities";
+import {bmdDecrease, bmdIncrease, fillPattern, spriteCellInner} from "./index";
+import {gameHeight, gameWidth, threshold, valToColor} from "./utilities";
 import {valToScale} from "./utilities";
+import {BLUE_BORDER, GREEN_BORDER} from "./gameState";
 
 var fragmentSrc = [
 
@@ -94,7 +95,6 @@ export function calculateFill(cell, cellVal) {
 
     fillPattern.tint = cellColor;
     fillPattern.scale.setTo(cellScale);
-
 
     function drawBmd(pattern) {
         let bmd = isIncreasing ? bmdIncrease : bmdDecrease;

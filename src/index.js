@@ -5,13 +5,14 @@ import {
     cellList,
     endTurn,
     fillData,
-    isAiTurn,
+    isUserTurn,
     selectButton,
     selected,
 } from "./gameState";
 import {gameHeight, gameWidth, GREEN, thresholdScale} from "./utilities";
 import {phaserMod} from "./phaserMod";
 import {animateDeselect, endFill, startFill} from "./animateSelect";
+import {sendMove, setupMatchComponents} from "./multiplayer";
 
 
 export var bmdIncrease;
@@ -20,7 +21,6 @@ export var bmdDecrease;
 const BACKGROUND = "#a1ffeb";
 
 export var g;
-
 export var group = {};
 
 const showCellNum = false;
@@ -72,7 +72,7 @@ function rowColToHeightWidth(row, col) {
 
 var grid_width;
 var grid_height;
-var spriteCellInner;
+export var spriteCellInner;
 
 function pointerUp(pointer) {
 
@@ -81,9 +81,12 @@ function pointerUp(pointer) {
         return;
     }
 
-    if (isAiTurn()) return;
+    if (!isUserTurn()) return;
 
-    if (selected !== null) endTurn();
+    if (selected !== null) {
+        sendMove();
+        endTurn();
+    }
 
     // need to manually reset inputover for cells
     cellList.forEach(cell => {
@@ -101,6 +104,9 @@ function linkNeighbors(cell1, cell2) {
 
 
 function create() {
+
+    setupMatchComponents();
+
     g.stage.backgroundColor = BACKGROUND;
     g.input.maxPointers = 1;
     g.input.onUp.add(pointerUp);
@@ -191,7 +197,8 @@ function create() {
             cellInput.events.onInputOver.add(() => {
                 // console.log("Over: Cell " + cellButton.cell.index);
 
-                if (isAiTurn()) return;
+                if (!isUserTurn()) return;
+
 
                 cellButton.cell.inputOver = true;
                 selectButton(cellButton);
@@ -199,7 +206,7 @@ function create() {
             cellInput.events.onInputOut.add(() => {
                 // console.log(`Out: Cell ${button.cell.index}, Pointer ${pointer.id}`);
 
-                if (isAiTurn()) return;
+                if (!isUserTurn()) return;
 
                 cellButton.cell.inputOver = false;
                 if (selected === cellButton) {

@@ -5,6 +5,7 @@ import {blueIsOn, findBestCell, greenIsOn} from "./ai";
 import {closeOverlays, resultString, setScore, settings, showGameOver, updateElements} from "./uiComponents";
 import {Cell, valToScale} from "./cell";
 import {animateCellUpdate, animateDeselect, animateSelect, checkGroup, stopAnimateFuture} from "./animateSelect";
+import {gameRoom, isMultiplayer, matchMsg, send, socket} from "./multiplayer";
 
 
 export const GREEN_BORDER = 0x05520c;
@@ -29,7 +30,7 @@ export function turnValue() {
 
     if (currentTurn === 1) {
         return 0.57;
-    } else if (turnColor === GREEN) {
+    } else if (currentTurn % 2 === 1) {
         return 1;
     } else {
         return -1;
@@ -39,8 +40,16 @@ export function turnValue() {
 export const setAiStop = (val) => aiStop = val;
 
 
-export function isAiTurn() {
+function isAiTurn() {
     return turnColor === GREEN && greenIsOn() || turnColor === BLUE && blueIsOn();
+}
+
+function isOpponentTurn() {
+    return isMultiplayer && (turnColor === GREEN && gameRoom.green !== socket.id || turnColor === BLUE && gameRoom.blue !== socket.id);
+}
+
+export function isUserTurn() {
+    return !isOpponentTurn() && !isAiTurn();
 }
 
 export function selectButton(button) {
@@ -72,7 +81,7 @@ export function setSelected(val) {
 
 export function sendAnalytics(action) {
 
-    let data = {...settings};
+    let data = {...settings, multiplayer: isMultiplayer};
 
     if (action === 'end') {
         data.result = resultString;
@@ -82,6 +91,32 @@ export function sendAnalytics(action) {
         'event_category': 'influence',
         'event_label': JSON.stringify(data),
     });
+}
+
+export function processMoveList(moves) {
+    moves.forEach(move => {
+        cellList[move.index].setValue(turnValue());
+        updateBoard(cellList);
+        currentTurn++;
+
+    });
+    updateTurnColor();
+    updateElements();
+
+    cellList.forEach(cell => cell.prevValue = 0);
+
+    animateCellUpdate(startTurn);
+}
+
+function updateTurnColor() {
+    if (currentTurn % 2 === 0) {
+        turnColor = BLUE;
+        turnBorderColor = BLUE_BORDER;
+
+    } else {
+        turnColor = GREEN;
+        turnBorderColor = GREEN_BORDER;
+    }
 }
 
 export function endTurn() {
@@ -108,16 +143,7 @@ export function endTurn() {
         deselect();
     }
 
-    if (currentTurn % 2 === 0) {
-        turnColor = BLUE;
-        turnBorderColor = BLUE_BORDER;
-
-    } else {
-        turnColor = GREEN;
-        turnBorderColor = GREEN_BORDER;
-
-    }
-
+    updateTurnColor();
     updateElements();
 
     var ended = false;
@@ -171,6 +197,13 @@ function resetItems() {
 
 }
 
+export function restartClick() {
+    if (isMultiplayer) {
+        send('restart');
+        matchMsg.innerHTML = `You restarted the game`;
+    }
+    restart();
+}
 
 export function restart() {
 
@@ -193,6 +226,14 @@ export function restart() {
 
     closeOverlays();
     startTurn();
+}
+
+export function undoClick() {
+    if (isMultiplayer) {
+        send('undo');
+        matchMsg.innerHTML = 'You cancelled the last move<br>' + matchMsg.innerHTML;
+    }
+    undo();
 }
 
 export function undo() {

@@ -1,5 +1,6 @@
-import {undo, restart, currentTurn, turnColor, setAiStop, startTurn} from "./gameState";
+import {undo, restart, currentTurn, turnColor, setAiStop, startTurn, restartClick, undoClick} from "./gameState";
 import {GREEN} from "./utilities";
+import {setupMatchComponents} from "./multiplayer";
 
 const GREEN_STR = '#038003';
 const BLUE_STR = '#005bd5';
@@ -61,7 +62,7 @@ export function setupComponents() {
     document.getElementById('undo-btn').onclick = () => {
         if (currentTurn <= 1) return; // do nothing
         rotateUndo();
-        undo();
+        undoClick();
     };
 
     document.getElementById('settings').onclick = () => {
@@ -69,13 +70,13 @@ export function setupComponents() {
     };
 
     document.querySelectorAll('.restart').forEach(elem => {
-        elem.onclick = () => restart();
+        elem.onclick = () => restartClick();
     });
 
     gameOverOverlay = document.getElementById('gameover-overlay');
     settingsOverlay = document.getElementById('settings-overlay');
 
-    document.querySelectorAll('.btn-grp div').forEach(elem => {
+    document.querySelectorAll('#settings-ai .btn-grp div').forEach(elem => {
         let color = elem.parentElement.parentElement.classList.contains(GREEN_CLASS) ? GREEN_CLASS : BLUE_CLASS;
         elem.onclick = () => {
 
@@ -99,6 +100,7 @@ export function setupComponents() {
     // set blue Easy AI
     document.querySelector('.blue .btn-grp :nth-child(2)').click();
 }
+
 
 
 function showSettings(show) {

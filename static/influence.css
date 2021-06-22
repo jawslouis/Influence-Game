@@ -249,6 +249,20 @@ a .no-underline {
     box-shadow: inset 0 -0.6em 1em -0.35em rgba(0, 0, 0, 0.17), inset 0 0.6em 2em -0.3em rgba(255, 255, 255, 0.15), inset 0 0 0em 0.05em rgba(255, 255, 255, 0.12);
 }
 
+
+.match-btn {
+    border-radius: 10px;
+    padding: 0.5em 1em;
+    background-color: #4ce6ff;
+    cursor: pointer;
+    box-shadow: inset 0 -0.6em 1em -0.35em rgba(0, 0, 0, 0.17), inset 0 0.6em 2em -0.3em rgba(255, 255, 255, 0.15), inset 0 0 0em 0.05em rgba(255, 255, 255, 0.12);
+}
+
+.match-btn-select {
+    background-color: #246A77;
+    color: white;
+}
+
 @media (orientation: portrait) {
     #game-container {
         flex-direction: column-reverse;
@@ -321,6 +335,10 @@ a .no-underline {
     min-width: 0;
 }
 
+.match-btn-grp {
+    justify-content: space-evenly;
+}
+
 p.no-bottom-margin {
     margin-bottom: 0;
 }
@@ -341,6 +359,14 @@ p.no-bottom-margin {
     width: 4em;
 }
 
+.settings-multiplayer .label {
+    width: auto;
+}
+
+.none {
+    display: none;
+}
+
 .btn-grp {
     margin-left: 1em;
 }
@@ -351,6 +377,26 @@ p.no-bottom-margin {
 
 .blue .btn-grp div {
     background-color: #3d7ed9;
+}
+
+.green-btn {
+    background-color: #2aa43b;
+}
+
+.green-btn.btn-selected {
+    background-color: #1e4c18;
+}
+
+.blue-btn {
+    background-color: #3d7ed9;
+}
+
+.blue-btn.btn-selected {
+    background-color: #212184;
+}
+
+.settings-multiplayer .btn-grp div {
+    width: 5em;
 }
 
 .btn-grp div {
@@ -374,16 +420,20 @@ div.btn-selected {
     color: white;
 }
 
-.none-btn {
+.left-btn {
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
 }
 
-.hard-btn {
+.right-btn {
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
 }
 
+.label-long {
+    padding-left: 0.5em;
+    width: 100px;
+}
 
 @media (max-width: 650px) and (orientation: landscape), (max-width: 370px) {
 

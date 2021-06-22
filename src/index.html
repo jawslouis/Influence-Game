@@ -50,22 +50,31 @@
             <div class="restart">Restart</div>
         </div>
         <div id="settings-overlay" class="hidden overlay">
-            <div class="flex-row green">
-                <div class="label">Green AI</div>
-                <div class="flex-row btn-grp">
-                    <div class="none-btn btn-selected">None</div>
-                    <div>Easy</div>
-                    <div>Medium</div>
-                    <div class="hard-btn">Hard</div>
+            <div class="settings-ai">
+                <div class="flex-row green">
+                    <div class="label">Green AI</div>
+                    <div class="flex-row btn-grp">
+                        <div class="left-btn btn-selected">None</div>
+                        <div>Easy</div>
+                        <div>Medium</div>
+                        <div class="right-btn">Hard</div>
+                    </div>
+                </div>
+                <div class="flex-row blue">
+                    <div class="label">Blue AI</div>
+                    <div class="flex-row btn-grp">
+                        <div class="left-btn btn-selected">None</div>
+                        <div>Easy</div>
+                        <div>Medium</div>
+                        <div class="right-btn">Hard</div>
+                    </div>
                 </div>
             </div>
-            <div class="flex-row blue">
-                <div class="label">Blue AI</div>
+            <div class="settings-multiplayer flex-row">
+                <div class="label">Player Color</div>
                 <div class="flex-row btn-grp">
-                    <div class="none-btn btn-selected">None</div>
-                    <div>Easy</div>
-                    <div>Medium</div>
-                    <div class="hard-btn">Hard</div>
+                    <div class="left-btn btn-selected green-btn">Green</div>
+                    <div class="right-btn blue-btn">Blue</div>
                 </div>
             </div>
             <div class="restart">Restart</div>
@@ -76,12 +85,12 @@
         <div id="settings"><img src="{% static 'settings.png' %}"></div>
         <div class="score">
             <div class="score-label">
-                <div class="score-color" style="background-color: #038003;">Green</div>
+                <div class="score-color" style="background-color: #038003;" id="green-tile-label">Green</div>
                 <div class="score-num" style="background-color: #749c74;" id="score-green">0 tiles</div>
             </div>
             <div id="score-border">type</div>
             <div class="score-label">
-                <div class="score-color" style="background-color: #005bd5;">Blue</div>
+                <div class="score-color" style="background-color: #005bd5;" id="blue-tile-label">Blue</div>
                 <div class="score-num" style="background-color: #5d80af;" id="score-blue">0 tiles</div>
             </div>
         </div>
@@ -90,6 +99,15 @@
             <img id='undo-img' src="{% static 'undo.png' %}">
         </div>
 
+    </div>
+</div>
+
+<div class="text">
+    <h3 class="title-spacer">Multiplayer</h3>
+    <p class="para-text" id="match-msg"></p>
+    <div class="flex-row match-btn-grp">
+        <div class="match-btn none" id="find-match">Find Match</div>
+        <div class="match-btn" id="private-match">Create Private Match</div>
     </div>
 </div>
 
@@ -107,15 +125,25 @@
         more details about the game.</p>
 
     <h3 class="title-spacer">Additional Info</h3>
-    <p class="para-text no-bottom-margin"><span class="bold">Threshold:</span> As a tile gains more 'influence', its colored area will
+    <p class="para-text no-bottom-margin"><span class="bold">Threshold:</span> As a tile gains more 'influence', its
+        colored area will
         grow in size and have a deeper color.</p>
-    <div class="flex-row"><img src="{% static 'influence\tile-10.png' %}"><img class="arrow" src="{% static 'influence\right-arrow.png' %}"><img src="{% static 'influence\tile-40.png' %}"></div>
-    <p class="para-text no-bottom-margin">Once the colored area reaches the tile's border, it can no longer be selected by the opponent and will have a
+    <div class="flex-row"><img src="{% static 'influence\tile-10.png' %}">
+        <img class="arrow" src="{% static 'influence\right-arrow.png' %}">
+        <img src="{% static 'influence\tile-40.png' %}">
+    </div>
+    <p class="para-text no-bottom-margin">Once the colored area reaches the tile's border, it can no longer be selected
+        by the opponent and will have a
         dark border.</p>
-    <div class="flex-row"><img src="{% static 'influence\tile-40.png' %}"><img class="arrow" src="{% static 'influence\right-arrow.png' %}"><img src="{% static 'influence\tile-threshold.png' %}"></div>
-    <p class="para-text no-bottom-margin">Growing 'influence' beyond that threshold will create a larger dark region around the border, acting as a buffer
+    <div class="flex-row"><img src="{% static 'influence\tile-40.png' %}">
+        <img class="arrow" src="{% static 'influence\right-arrow.png' %}">
+        <img src="{% static 'influence\tile-threshold.png' %}"></div>
+    <p class="para-text no-bottom-margin">Growing 'influence' beyond that threshold will create a larger dark region
+        around the border, acting as a buffer
         against the opponent's influence.</p>
-    <div class="flex-row"><img src="{% static 'influence\tile-threshold.png' %}"><img class="arrow" src="{% static 'influence\right-arrow.png' %}"><img src="{% static 'influence\tile-80.png' %}"></div>
+    <div class="flex-row"><img src="{% static 'influence\tile-threshold.png' %}">
+        <img class="arrow" src="{% static 'influence\right-arrow.png' %}">
+        <img src="{% static 'influence\tile-80.png' %}"></div>
     <p class="para-text"><span class="bold">Preview:</span> Hover over a tile before selecting it to preview the
         end-of-turn 'influence' changes.</p>
     <p class="para-text"><span class="bold">Starting tile:</span> To offset Green's first-mover advantage, Green's first
@@ -125,6 +153,7 @@
     <p class="para-text" style="font-style: italic;">Hint: Pit the AI against itself to pick up some strategies!</p>
 </div>
 
+<script src="{% static 'socket.io.js' %}"></script>
 <script defer src="{% static 'phaser-custom.min.js' %}"></script>
 <% for(var i=0; i < htmlWebpackPlugin.files.js.length; i++) {%>
 <script defer src="{% static 'influence/<%= htmlWebpackPlugin.files.js[i] %>' %}"></script>

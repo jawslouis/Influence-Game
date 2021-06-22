@@ -94,18 +94,10 @@ export class Cell {
 
         let alpha = {val: prevAlpha};
 
-        if (borderAppearing) {
-            this.valBorder.alpha = 1;
-        }
 
         this.borderAlphaTween = g.add.tween(alpha).to({val: 1 - prevAlpha}, updateTime, easing, false);
         this.borderAlphaTween.onUpdateCallback(() => {
-            this.border.alpha = alpha.val;
-            this.bgBorder.alpha = alpha.val;
-
-            if (!borderAppearing)
-                this.valBorder.alpha = alpha.val;
-
+            this.setBorderAlpha(alpha.val);
         });
 
         this.borderAlphaTween.start();
