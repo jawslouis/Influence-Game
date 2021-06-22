@@ -49,7 +49,9 @@ function isOpponentTurn() {
 }
 
 export function isUserTurn() {
-    return !isOpponentTurn() && !isAiTurn();
+
+    if (isMultiplayer) return !isOpponentTurn();
+    else return !isAiTurn();
 }
 
 export function selectButton(button) {
@@ -103,7 +105,9 @@ export function processMoveList(moves) {
     updateTurnColor();
     updateElements();
 
-    cellList.forEach(cell => cell.prevValue = 0);
+    cellList.forEach(cell => {
+        cell.prevValue = 0;
+    });
 
     animateCellUpdate(startTurn);
 }
@@ -117,6 +121,23 @@ function updateTurnColor() {
         turnColor = GREEN;
         turnBorderColor = GREEN_BORDER;
     }
+}
+
+export function updateScore() {
+    var greenScore = 0;
+    var blueScore = 0;
+    for (var i = 0; i < cellList.length; i++) {
+        if (cellList[i].aboveThreshold()) {
+            if (cellList[i].value > 0) {
+                greenScore++;
+            } else {
+                blueScore++;
+            }
+        }
+    }
+
+    setScore(greenScore, blueScore);
+    return {greenScore, blueScore};
 }
 
 export function endTurn() {
@@ -157,20 +178,7 @@ export function endTurn() {
     }
 
     // count score now
-
-    var greenScore = 0;
-    var blueScore = 0;
-    for (var i = 0; i < cellList.length; i++) {
-        if (cellList[i].aboveThreshold()) {
-            if (cellList[i].value > 0) {
-                greenScore++;
-            } else {
-                blueScore++;
-            }
-        }
-    }
-
-    setScore(greenScore, blueScore);
+    let {greenScore, blueScore} = updateScore();
 
     turnActive = false;
 
@@ -283,7 +291,7 @@ export function startTurn() {
 
     if (turnActive) return; // do nothing, turn already in progress
 
-    if (isAiTurn()) {
+    if (isAiTurn() && !isMultiplayer) {
 
         aiStop = false;
 

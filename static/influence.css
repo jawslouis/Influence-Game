@@ -67,6 +67,7 @@ a .no-underline {
     margin-bottom: 0.5em;
     display: flex;
     width: 200px;
+    position:relative;
 }
 
 
@@ -87,10 +88,11 @@ a .no-underline {
     flex-grow: 1;
 }
 
-#score-border {
+.score-border {
     position: absolute;
-    padding: 0.5em 0 0.5em 0;
-    width: 200px;
+    padding: 0;
+    height: 100%;
+    width: 100%;
     border-radius: 10px;
     background-color: #313131;
     color: #313131;
@@ -98,7 +100,6 @@ a .no-underline {
     top: -5px;
     left: -5px;
     border: 5px solid #313131;
-    transition: transform 0.7s;
 }
 
 .undo {
@@ -277,8 +278,8 @@ a .no-underline {
 
 @media (max-width: 1050px) and (orientation: landscape), (max-width: 370px) {
 
-    .score-label, #score-border {
-        width: 160px;
+    .score-label, .score-border {
+        width: 180px;
         font-size: 18px;
     }
 
@@ -359,7 +360,7 @@ p.no-bottom-margin {
     width: 4em;
 }
 
-.settings-multiplayer .label {
+#settings-multiplayer .label {
     width: auto;
 }
 
@@ -385,6 +386,7 @@ p.no-bottom-margin {
 
 .green-btn.btn-selected {
     background-color: #1e4c18;
+    box-shadow: 0 0 5px 5px #2aa43b;
 }
 
 .blue-btn {
@@ -393,9 +395,11 @@ p.no-bottom-margin {
 
 .blue-btn.btn-selected {
     background-color: #212184;
+    box-shadow: 0 0 5px 5px #3d7ed9;
+    z-index: -1;
 }
 
-.settings-multiplayer .btn-grp div {
+#settings-multiplayer .btn-grp div {
     width: 5em;
 }
 
@@ -433,6 +437,12 @@ div.btn-selected {
 .label-long {
     padding-left: 0.5em;
     width: 100px;
+}
+
+#match-msg {
+    max-height: 8em;
+    overflow: auto;
+    overflow-x: hidden;
 }
 
 @media (max-width: 650px) and (orientation: landscape), (max-width: 370px) {
@@ -502,13 +512,9 @@ div.btn-selected {
 }
 
 @media (max-width: 370px) {
-    .score-color, .score-num, #score-border {
+    .score-color, .score-num {
         padding-top: 0.25em;
         padding-bottom: 0.25em;
-    }
-
-    .score-border-move {
-        transform: translateY(40px);
     }
 
     .game-row {

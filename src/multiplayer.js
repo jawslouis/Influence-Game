@@ -7,7 +7,7 @@ import {
     undo,
     restart,
     sendAnalytics,
-    processMoveList
+    processMoveList, updateScore
 } from "./gameState";
 import {GREEN} from "./utilities";
 import {animateSelect} from "./animateSelect";
@@ -22,8 +22,8 @@ export var gameRoom = {id: null, green: null, blue: null};
 function multiplayerMenu(enabled) {
     isMultiplayer = enabled;
 
-    let menu = document.querySelector(".settings-multiplayer");
-    let aiMenu = document.querySelector(".settings-ai");
+    let menu = document.getElementById("settings-multiplayer");
+    let aiMenu = document.getElementById("settings-ai");
     if (enabled) {
         menu.style.display = 'flex';
         aiMenu.style.display = 'none';
@@ -45,7 +45,12 @@ function multiplayerMenu(enabled) {
 }
 
 function startSocket() {
-    socket = io('http://localhost:3000');
+
+    let url;
+    if (window.location.hostname === 'localhost') url = 'http://localhost:3000';
+    else url = `http://${window.location.hostname}`;
+
+    socket = io(url);
 
     setupSocket();
 }
@@ -89,8 +94,8 @@ export function setupMatchComponents() {
         }
     };
 
-    blueBtn = document.querySelector('.settings-multiplayer .blue-btn');
-    greenBtn = document.querySelector('.settings-multiplayer .green-btn');
+    blueBtn = document.querySelector('#settings-multiplayer .blue-btn');
+    greenBtn = document.querySelector('#settings-multiplayer .green-btn');
     greenTileLabel = document.getElementById('green-tile-label');
     blueTileLabel = document.getElementById('blue-tile-label');
 
@@ -125,7 +130,11 @@ export function setupMatchComponents() {
 let blueBtn, greenBtn, greenTileLabel, blueTileLabel;
 
 function idToLink(id) {
-    return `http://${window.location.hostname}:${window.location.port}/influence/${id}`;
+
+    let location = window.location.hostname;
+    if (window.location.port && window.location.port !== "") location += ":" + window.location.port;
+
+    return `http://${location}/influence/${id}`;
 }
 
 function getColor(room) {
@@ -136,7 +145,7 @@ function getColor(room) {
     return color;
 }
 
-function updateUiColor(isGreen) {
+function updateUiColor(isGreen, fromEmit = false) {
     let myBtn, otherBtn, myTileLabel, otherTileLabel;
 
     let hasChanged = false;
@@ -152,12 +161,10 @@ function updateUiColor(isGreen) {
     if (isGreen && !greenBtn.classList.contains('btn-selected')) {
         myBtn = greenBtn;
         otherBtn = blueBtn;
-        matchMsg.innerHTML = 'Switched to the green player <br>' + matchMsg.innerHTML;
         hasChanged = true;
     } else if (!isGreen && !blueBtn.classList.contains('btn-selected')) {
         myBtn = blueBtn;
         otherBtn = greenBtn;
-        matchMsg.innerHTML = 'Switched to the blue player <br>' + matchMsg.innerHTML;
         hasChanged = true;
     }
 
@@ -169,10 +176,13 @@ function updateUiColor(isGreen) {
         myBtn.classList.add('btn-selected');
         otherBtn.classList.remove('btn-selected');
 
+        let pronoun = fromEmit ? 'Opponent' : 'You';
+        let color = !fromEmit && isGreen || fromEmit && !isGreen ? 'green' : 'blue';
+        matchMsg.innerHTML = `${pronoun} switched to the ${color} player <br>` + matchMsg.innerHTML;
     }
 }
 
-function updateUI(room) {
+function updateUI(room, fromEmit = false) {
 
     if (gameRoom.id !== room.id) {
 
@@ -192,9 +202,9 @@ function updateUI(room) {
         prevOpponent = gameRoom.green;
     }
 
-    if (currOpponent === null && prevOpponent !== null){
+    if (currOpponent === null && prevOpponent !== null) {
         matchMsg.innerHTML = 'Opponent left<br>' + matchMsg.innerHTML;
-    } else if (currOpponent !== null && prevOpponent === null){
+    } else if (currOpponent !== null && prevOpponent === null) {
         matchMsg.innerHTML = 'Opponent joined<br>' + matchMsg.innerHTML;
     }
 
@@ -204,7 +214,7 @@ function updateUI(room) {
     multiplayerMenu(true);
 
 
-    updateUiColor(isGreen);
+    updateUiColor(isGreen, fromEmit);
 
 }
 
@@ -222,6 +232,7 @@ function setupSocket() {
         updateUI(room);
         matchMsg.innerHTML = `You are now in room ${room.id} as the ${getColor(room)} player. Share the link: <a href="${link}">${link}</a>`;
         sendAnalytics('createPrivateMatch');
+        restart();
     });
 
     socket.on('private-room-joined', (room) => {
@@ -229,6 +240,7 @@ function setupSocket() {
         matchMsg.innerHTML = `Joined room ${room.id} as the ${getColor(room)} player`;
         sendAnalytics('joinPrivateMatch');
         processMoveList(room.moveList);
+        updateScore();
     });
 
     socket.on('msg-no-action', (msg) => {
@@ -236,7 +248,7 @@ function setupSocket() {
     });
 
     socket.on('update-players', (room) => {
-        updateUI(room);
+        updateUI(room, true);
     });
 
     socket.on('move', (move) => {

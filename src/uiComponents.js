@@ -20,11 +20,14 @@ export function setScore(greenScore, blueScore) {
 }
 
 function setScoreBorder() {
-    let border = document.getElementById('score-border');
+    let greenBorder = document.getElementById('green-score-border');
+    let blueBorder = document.getElementById('blue-score-border');
     if (turnColor === GREEN) {
-        border.classList.remove("score-border-move");
+        blueBorder.style.opacity = '0';
+        greenBorder.style.opacity = '1';
     } else {
-        border.classList.add("score-border-move");
+        greenBorder.style.opacity = '0';
+        blueBorder.style.opacity = '1';
     }
 
 }
@@ -77,7 +80,7 @@ export function setupComponents() {
     settingsOverlay = document.getElementById('settings-overlay');
 
     document.querySelectorAll('#settings-ai .btn-grp div').forEach(elem => {
-        let color = elem.parentElement.parentElement.classList.contains(GREEN_CLASS) ? GREEN_CLASS : BLUE_CLASS;
+        let color = elem.closest('.' + GREEN_CLASS) !== null ? GREEN_CLASS : BLUE_CLASS;
         elem.onclick = () => {
 
             if (!elem.classList.contains('btn-selected')) {
@@ -100,7 +103,6 @@ export function setupComponents() {
     // set blue Easy AI
     document.querySelector('.blue .btn-grp :nth-child(2)').click();
 }
-
 
 
 function showSettings(show) {

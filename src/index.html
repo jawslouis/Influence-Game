@@ -14,7 +14,11 @@
     <link rel="icon" sizes="192x192" href="{% static 'icon.png' %}">
     <link rel="stylesheet"
           href="{% static 'Lato.css' %}">
-    <link rel="stylesheet" href="{% static 'influence.css' %}">
+
+
+    <% for(var i=0; i < htmlWebpackPlugin.files.css.length; i++) {%>
+    <link rel="stylesheet" href="{% static 'influence/<%= htmlWebpackPlugin.files.css[i] %>' %}">
+    <% } %>
 
     <script>
 
@@ -50,7 +54,7 @@
             <div class="restart">Restart</div>
         </div>
         <div id="settings-overlay" class="hidden overlay">
-            <div class="settings-ai">
+            <div id="settings-ai">
                 <div class="flex-row green">
                     <div class="label">Green AI</div>
                     <div class="flex-row btn-grp">
@@ -70,7 +74,7 @@
                     </div>
                 </div>
             </div>
-            <div class="settings-multiplayer flex-row">
+            <div id="settings-multiplayer" class="none flex-row">
                 <div class="label">Player Color</div>
                 <div class="flex-row btn-grp">
                     <div class="left-btn btn-selected green-btn">Green</div>
@@ -84,12 +88,13 @@
     <div class="game-row">
         <div id="settings"><img src="{% static 'settings.png' %}"></div>
         <div class="score">
-            <div class="score-label">
+            <div class="score-label" id="green-score">
+                <div class="score-border" id="green-score-border"></div>
                 <div class="score-color" style="background-color: #038003;" id="green-tile-label">Green</div>
                 <div class="score-num" style="background-color: #749c74;" id="score-green">0 tiles</div>
             </div>
-            <div id="score-border">type</div>
-            <div class="score-label">
+            <div class="score-label" id="blue-score">
+                <div class="score-border" id="blue-score-border" style="opacity: 0;"></div>
                 <div class="score-color" style="background-color: #005bd5;" id="blue-tile-label">Blue</div>
                 <div class="score-num" style="background-color: #5d80af;" id="score-blue">0 tiles</div>
             </div>
@@ -153,7 +158,7 @@
     <p class="para-text" style="font-style: italic;">Hint: Pit the AI against itself to pick up some strategies!</p>
 </div>
 
-<script src="{% static 'socket.io.js' %}"></script>
+<script src="{% static 'socket.io.min.js' %}"></script>
 <script defer src="{% static 'phaser-custom.min.js' %}"></script>
 <% for(var i=0; i < htmlWebpackPlugin.files.js.length; i++) {%>
 <script defer src="{% static 'influence/<%= htmlWebpackPlugin.files.js[i] %>' %}"></script>

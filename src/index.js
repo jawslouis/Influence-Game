@@ -12,8 +12,8 @@ import {
 import {gameHeight, gameWidth, GREEN, thresholdScale} from "./utilities";
 import {phaserMod} from "./phaserMod";
 import {animateDeselect, endFill, startFill} from "./animateSelect";
-import {sendMove, setupMatchComponents} from "./multiplayer";
-
+import {isMultiplayer, sendMove, setupMatchComponents} from "./multiplayer";
+import css from "../static/influence.css";
 
 export var bmdIncrease;
 export var bmdDecrease;
@@ -81,10 +81,13 @@ function pointerUp(pointer) {
         return;
     }
 
-    if (!isUserTurn()) return;
+    if (!isUserTurn()) {
+        console.log('not user turn');
+        return;
+    }
 
     if (selected !== null) {
-        sendMove();
+        if (isMultiplayer) sendMove();
         endTurn();
     }
 
