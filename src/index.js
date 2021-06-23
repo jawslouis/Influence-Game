@@ -231,7 +231,9 @@ function create() {
             group.border.add(cellBorder);
 
 
-            var cell = new Cell(cellButton, cellBorder, cellList.length);
+            var cell = new Cell(cellList.length);
+            cell.button = cellButton;
+            cell.border = cellBorder;
             cell.inputImg = cellInput;
             cell.valBorder = valBorder;
             cell.bgBorder = bgBorder;

@@ -5,13 +5,13 @@ import {g} from "./index";
 
 export class Cell {
 
-    constructor(button, border, idx) {
-        this.button = button;
+    constructor(idx) {
+        this.button = null;
         this.value = 0;
         this.nextValue = 0;
         this.prevValue = 0;
         this.neighbors = [];
-        this.border = border;
+        this.border = null;
         this.index = idx;
         this.colorTween = null;
         this.buttonTween = null;
@@ -23,9 +23,17 @@ export class Cell {
     }
 
     copyCell() {
-        let cell = new Cell(this.button, this.border, this.index);
+        let cell = new Cell(this.index);
+        cell.button = this.button;
+        cell.border = this.border;
         cell.valBorder = this.valBorder;
         cell.bgBorder = this.bgBorder;
+        return cell;
+    }
+
+    copyCellVal() {
+        let cell = new Cell(this.index);
+        cell.value = this.value;
         return cell;
     }
 
