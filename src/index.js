@@ -23,7 +23,7 @@ const BACKGROUND = "#a1ffeb";
 export var g;
 export var group = {};
 
-const showCellNum = true;
+const showCellNum = false;
 
 window.onload = function () {
 
@@ -144,7 +144,7 @@ function create() {
 
     var style = {
         font: "32px Arial",
-        fill: "#000044",
+        fill: "#000000",
         wordWrap: true,
         wordWrapWidth: spriteCellInner.width,
         align: "center",
@@ -156,7 +156,7 @@ function create() {
     for (let col = 0; col < numCols; col++) {
         for (let row = 0; row < numRows; row++) {
 
-            if (col % 2 === 1 && row === 5) break;
+            if (col % 2 === 1 && row === numRows-1) break;
 
             var hwTuple = rowColToHeightWidth(row, col);
             var height = hwTuple.y;
@@ -172,7 +172,7 @@ function create() {
         grid.push([]);
         for (var row = 0; row < numRows; row++) {
 
-            if (col % 2 === 1 && row === 5) break;
+            if (col % 2 === 1 && row === numRows-1) break;
 
             var hwTuple = rowColToHeightWidth(row, col);
             var height = hwTuple.y;
@@ -267,7 +267,7 @@ function create() {
                 // link to the bottom left
                 if (col % 2 === 1) {
                     linkNeighbors(cell, grid[col - 1][row + 1]);
-                } else if (row < 5) {
+                } else if (row < numRows-1) {
                     linkNeighbors(cell, grid[col - 1][row]);
                 }
             }

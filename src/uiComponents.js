@@ -101,8 +101,7 @@ export function setupComponents() {
     };
 
     // set blue Easy AI
-    // document.querySelector('.blue .btn-grp :nth-child(2)').click();
-    document.querySelector('.blue .btn-grp :nth-child(5)').click();
+    document.querySelector('.blue .btn-grp :nth-child(2)').click();
 }
 
 

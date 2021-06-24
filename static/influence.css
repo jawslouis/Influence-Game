@@ -67,7 +67,7 @@ a .no-underline {
     margin-bottom: 0.5em;
     display: flex;
     width: 200px;
-    position:relative;
+    position: relative;
 }
 
 
@@ -198,7 +198,7 @@ a .no-underline {
 .overlay {
     max-height: 90%;
     max-width: 100%;
-    overflow: auto;
+    overflow: visible;
     margin: auto;
     position: absolute;
     top: 0;
@@ -263,67 +263,6 @@ a .no-underline {
     background-color: #246A77;
     color: white;
 }
-
-@media (orientation: portrait) {
-    #game-container {
-        flex-direction: column-reverse;
-    }
-
-    .game-row {
-        flex-direction: row-reverse;
-        justify-content: space-around;
-    }
-}
-
-
-@media (max-width: 1050px) and (orientation: landscape), (max-width: 370px) {
-
-    .score-label, .score-border {
-        width: 180px;
-        font-size: 18px;
-    }
-
-    .score-color {
-        padding-left: 0.5em;
-        width: 70px;
-    }
-
-    .score-num {
-        padding-right: 0.5em;
-    }
-
-    .score-border-move {
-        transform: translateY(49px);
-    }
-
-    .game-row {
-        margin-right: 10px;
-        padding-left: 0px;
-        z-index: 5;
-    }
-}
-
-@media (max-width: 1050px) and (orientation: landscape) {
-    .game-row {
-
-        margin-left: -10px;
-
-    }
-}
-
-
-@media (max-width: 1050px) {
-    .text {
-        max-width: 800px;
-    }
-}
-
-@media (max-width: 775px) {
-    .text {
-        max-width: 700px;
-    }
-}
-
 
 .flex-row {
     display: flex;
@@ -445,6 +384,75 @@ div.btn-selected {
     overflow-x: hidden;
 }
 
+
+@media (orientation: portrait) {
+    #game-container {
+        flex-direction: column-reverse;
+    }
+
+    .game-row {
+        flex-direction: row-reverse;
+        justify-content: space-around;
+    }
+}
+
+
+@media (max-width: 1050px) and (orientation: landscape), (max-width: 370px) {
+
+    .score-label, .score-border {
+        width: 180px;
+        font-size: 18px;
+    }
+
+    .score-color {
+        padding-left: 0.5em;
+        width: 70px;
+    }
+
+    .score-num {
+        padding-right: 0.5em;
+    }
+
+    .score-border-move {
+        transform: translateY(49px);
+    }
+
+    .game-row {
+        margin-right: 10px;
+        padding-left: 0px;
+        z-index: 5;
+    }
+}
+
+@media (max-width: 1050px) and (orientation: landscape) {
+    .game-row {
+
+        margin-left: -10px;
+
+    }
+}
+
+
+@media (max-width: 1050px) {
+    .text {
+        max-width: 800px;
+    }
+}
+
+@media (max-width: 775px) {
+    .text {
+        max-width: 700px;
+    }
+
+    #game-canvas {
+        position: static
+    }
+
+    #game-container {
+        position: relative;
+    }
+}
+
 @media (max-width: 650px) and (orientation: landscape), (max-width: 370px) {
 
     body {
@@ -484,8 +492,13 @@ div.btn-selected {
         margin-left: -5px;
     }
 
-    #settings-overlay > div {
+    .ai-wrapper {
         flex-direction: column;
+    }
+
+    .btn-grp div {
+        padding-left: 0.5em;
+        padding-right: 0.5em;
     }
 
 }
@@ -497,7 +510,7 @@ div.btn-selected {
         padding: 0;
     }
 
-    #settings-overlay > div {
+    .ai-wrapper {
         flex-direction: column;
     }
 
@@ -505,10 +518,51 @@ div.btn-selected {
         margin-bottom: 0.5em;
     }
 
+    #settings-ai {
+        display: flex;
+        flex-direction: row;
+    }
+
     .btn-grp {
         margin-left: 0;
     }
 
+    #settings-ai .btn-grp {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #settings-ai .left-btn {
+        border-radius: 10px 10px 0 0;
+    }
+
+    #settings-ai .right-btn {
+        border-radius:  0 0 10px 10px;
+    }
+
+    #settings-ai .right-btn {
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+
+    #settings-ai .btn-grp div {
+        display: flex;
+        justify-content: center;
+
+    }
+
+    #settings-multiplayer {
+        flex-direction: column;
+    }
+
+    .green {
+        margin-bottom: 0;
+        margin-right: 1em;
+    }
+
+    #player-color div {
+        padding: 0.5em 0;
+    }
 }
 
 @media (max-width: 370px) {

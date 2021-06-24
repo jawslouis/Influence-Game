@@ -45,6 +45,12 @@ function difficultyToNum(diff, numChoices) {
 
 // Try selecting each cell and simulate 20 turns passing with no moves. The highest-scoring cell is chosen.
 function greedySearch() {
+
+    if (simulBoard.length < 1) {
+        // create a copy of the game board
+        simulBoard = copyBoard(cellList, true);
+    }
+
     let scoreList = [];
 
     for (var i = 0; i < cellList.length; i++) {
@@ -54,11 +60,8 @@ function greedySearch() {
         if (c.aboveThreshold()) {
             continue;
         }
-
         var score;
-
         resetSimulation();
-
         var ended = false;
 
         // update for many turns
@@ -85,15 +88,10 @@ function greedySearch() {
 export function findBestCell() {
 
 
-    if (simulBoard.length < 1) {
-        // create a copy of the game board
-        simulBoard = copyBoard(cellList, true);
-    }
-
     let isGreen = turnColor === GREEN;
     if (isGreen && settings.aiGreen === 'Very Hard' || !isGreen && settings.aiBlue === 'Very Hard') {
         // for very hard AI
-        return MCTS(simulBoard);
+        return MCTS();
     }
 
     // for easy to hard AI
@@ -102,15 +100,12 @@ export function findBestCell() {
 }
 
 // Monte Carlo tree search for the very hard AI
-function MCTS(board) {
+function MCTS() {
 
-    let root = new TreeNode(null, board, null, currentTurn-1);
-
+    let board = copyBoard(cellList, true);
+    let root = new TreeNode(null, board, null, currentTurn - 1);
 
     for (let i = 0; i < 10000; i++) {
-
-        if (i % 100 === 0)
-            console.log('iteration ' + i);
         let leaf = selectLeaf(root);
         simulatePlay(leaf);
     }
@@ -124,7 +119,6 @@ function MCTS(board) {
         }
     });
 
-    console.log('selecting move ' + bestChild.move);
     return cellList[bestChild.move];
 
 }
@@ -166,15 +160,12 @@ function simulatePlay(node) {
             result = node.terminalResult;
         } else {
 
-            let simulateBoard = copyBoard(node.board);
-            let turn = node.turn;
-            while (moves.length > 0) {
-                turn++;
-                let move = randomElement(moves);
-                simulateBoard[move].value = valueAtTurn(turn);
-                updateBoard(simulateBoard);
-                moves = getValidMoves(simulateBoard);
-                if (turn > 100) break;
+            let simulateBoard = copyBoard(node.board, true);
+
+            let ended = false;
+            for (let j = 0; j < 20 && !ended; j++) {
+                ended = updateBoard(simulateBoard);
+                if (ended) break;
             }
             result = getScore(simulateBoard);
         }
@@ -226,29 +217,27 @@ function randomElement(list) {
 
 function selectLeaf(node) {
 
+    if (node.isTerminal) return node;
     if (node.children.length === 0) return expandNode(node);
-
-    let hasUnvisitedChild = false;
-    node.children.forEach(child => {
-        if (child.greenWins + child.blueWins <= 0) hasUnvisitedChild = true;
-    });
-
 
     let moves = getValidMoves(node.board);
     if (node.children.length < moves.length) {
-        // create a new child and return it
-        for (const move of moves) {
+        // there are still moves without corresponding child nodes. create a node for one.
+        while (moves.length > 0) {
+
+            let idx = getRandomInt(moves.length);
+            let move = moves.splice(idx, 1)[0];
+
             if (!node.childMoves.includes(move)) {
                 return node.createChild(move);
             }
         }
     }
 
-    let selectionScore = node.children[0].getSelectionScore(), selectedChild = node.children[0];
+    let selectionScore, selectedChild = null;
     node.children.forEach(child => {
         let childScore = child.getSelectionScore();
-
-        if (childScore > selectionScore) {
+        if (selectedChild === null || childScore > selectionScore) {
             selectionScore = childScore;
             selectedChild = child;
         }
