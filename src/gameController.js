@@ -17,10 +17,10 @@ import {
     updateBoard,
     selected,
     setSelected,
-    copyBoard,
     setCurrentTurn, turnIsGreen, isMultiplayer
 } from "./gameState";
 import {g} from "./display";
+import {copyBoard} from "./cell";
 
 
 export var aiStop = false;
@@ -83,7 +83,7 @@ export function processMoveList(moves) {
     moves.forEach(move => {
         cellList[move.index].setValue(turnValue());
         updateBoard(cellList);
-        setCurrentTurn(currentTurn+1);
+        setCurrentTurn(currentTurn + 1);
 
     });
     updateElements(currentTurn);
@@ -268,6 +268,8 @@ let aiWorker = null;
 const ai_time_before_select = 500;
 const ai_time_btwn_select_and_end = 200;
 
+export const setAiWorker = (val) => aiWorker = val;
+
 export function startAiWorker() {
     if (window.Worker) {
         let aiWorker = new Worker(new URL('./aiWorker.js', import.meta.url));
@@ -280,13 +282,22 @@ export function startAiWorker() {
 }
 
 export function receiveAiResult(index) {
-    selectButton(cellList[index].button);
-    g.time.events.add(ai_time_btwn_select_and_end, function () {
-        if (!aiStop) {
-            endTurn();
-        }
-        turnActive = false;
-    });
+    function doSelect() {
+        selectButton(cellList[index].button);
+        g.time.events.add(ai_time_btwn_select_and_end, function () {
+            if (!aiStop) {
+                endTurn();
+            }
+            turnActive = false;
+        });
+    }
+
+    if (turnIsGreen() && settings.aiGreen === 'Very Hard' || !turnIsGreen() && settings.aiBlue === 'Very Hard') {
+        doSelect();
+    } else {
+        // add delay for the faster AIs
+        g.time.events.add(ai_time_before_select, doSelect);
+    }
 
 }
 
@@ -296,18 +307,9 @@ export function startAI() {
         aiWorker.postMessage({settings, cellList: copy, currentTurn});
     } else {
 
-        if (turnIsGreen() && settings.aiGreen === 'Very Hard' || !turnIsGreen() && settings.aiBlue === 'Very Hard') {
+        let index = findBestCell({settings, cellList, currentTurn});
+        receiveAiResult(index);
 
-            let index = findBestCell({settings, cellList, currentTurn});
-            receiveAiResult(index);
-        } else {
-
-            // add delay for lower difficulties
-            g.time.events.add(ai_time_before_select, function () {
-                let index = findBestCell({settings, cellList, currentTurn});
-                receiveAiResult(index);
-            });
-        }
     }
 
 }

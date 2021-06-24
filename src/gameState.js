@@ -1,9 +1,9 @@
 import {valueAtTurn} from "./utilities";
 
 export function updateBoard(board) {
-    let i;
-// update all cells
 
+    // update all cells
+    let i;
     for (i = 0; i < board.length; i++) {
         board[i].updateNextValue();
     }
@@ -19,21 +19,6 @@ export function updateBoard(board) {
         }
     }
     return ended;
-}
-
-
-export function copyBoard(original, copyVal = false) {
-
-    let copy = original.map(cell => copyVal ? cell.copyCellVal() : cell.copyCell());
-
-    original.forEach((origCell, i) => {
-        origCell.neighbors.forEach(neighbor => {
-            let idx = neighbor.index;
-            copy[i].neighbors.push(copy[idx]);
-        });
-    });
-    return copy;
-
 }
 
 export var selected;

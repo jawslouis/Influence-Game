@@ -5,6 +5,30 @@ import {g} from "./display"
 
 export const cell_update_time = 500;
 
+export function aboveThreshold(cell) {
+    return Math.abs(cell.value) >= threshold;
+}
+
+export function copyBoard(original, copyVal = false) {
+
+    let copy = original.map(cell => copyVal ? copyCellVal(cell) : cell.copyCell());
+
+    original.forEach((origCell, i) => {
+        origCell.neighbors.forEach(neighbor => {
+            let idx = neighbor.index;
+            copy[i].neighbors.push(copy[idx]);
+        });
+    });
+    return copy;
+
+}
+
+export function copyCellVal(c) {
+    let cell = new Cell(c.index);
+    cell.value = c.value;
+    return cell;
+}
+
 export class Cell {
 
     constructor(idx) {
@@ -30,12 +54,6 @@ export class Cell {
         cell.border = this.border;
         cell.valBorder = this.valBorder;
         cell.bgBorder = this.bgBorder;
-        return cell;
-    }
-
-    copyCellVal() {
-        let cell = new Cell(this.index);
-        cell.value = this.value;
         return cell;
     }
 
@@ -121,7 +139,7 @@ export class Cell {
     }
 
     aboveThreshold() {
-        return Math.abs(this.value) >= threshold;
+        return aboveThreshold(this);
     }
 
     setValue(val) {

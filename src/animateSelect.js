@@ -1,8 +1,8 @@
 import {gameWidth, getColorBandFromValue, valueAtTurn} from "./utilities";
 import {valToScale} from "./utilities";
-import {cell_update_time} from "./cell";
+import {cell_update_time, copyBoard} from "./cell";
 import {g, group, clearBmd, fillData, updateBmd} from "./display";
-import {cellList, copyBoard, currentTurn, turnValue, updateBoard, selected, setSelected} from "./gameState";
+import {cellList, turnValue, updateBoard, selected, setSelected} from "./gameState";
 
 const selectTime = 200;
 const deselectTime = 1000;

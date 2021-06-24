@@ -1,7 +1,7 @@
 /* Note: Cannot import game state values as this is run in a web worker thread */
-
 import {valueAtTurn} from "./utilities";
-import {copyBoard, updateBoard} from "./gameState";
+import {updateBoard} from "./gameState";
+import {copyBoard, aboveThreshold} from "./cell";
 
 
 // have to use pure function for web worker
@@ -43,12 +43,8 @@ function difficultyToNum(diff, numChoices) {
 // Try selecting each cell and simulate 20 turns passing with no moves. The highest-scoring cell is chosen.
 function greedySearch({cellList, currentTurn, settings}) {
 
-    let simulBoard = [];
-
-    if (simulBoard.length < 1) {
-        // create a copy of the game board
-        simulBoard = copyBoard(cellList, true);
-    }
+    // create a copy of the game board
+    let simulBoard = copyBoard(cellList, true);
 
     let scoreList = [];
 
@@ -56,7 +52,7 @@ function greedySearch({cellList, currentTurn, settings}) {
 
         var c = cellList[i];
 
-        if (c.aboveThreshold()) {
+        if (aboveThreshold(c)) {
             continue;
         }
         var score;
@@ -117,8 +113,6 @@ function MCTS({cellList, currentTurn}) {
         }
     });
 
-    console.log(`bestchild green:${bestChild.greenWins} blue${bestChild.blueWins}`);
-    console.log(`Time taken: ${Date.now() - start}ms`);
     return cellList[bestChild.move];
 
 }
@@ -128,7 +122,7 @@ function getScore(simulateBoard) {
     let greenScore = 0;
     let blueScore = 0;
     simulateBoard.forEach(cell => {
-        if (cell.aboveThreshold()) {
+        if (aboveThreshold(cell)) {
             if (cell.value > 0) {
                 greenScore++;
             } else {
@@ -202,7 +196,7 @@ function expandNode(node) {
 function getValidMoves(board) {
     let moves = [];
     board.forEach(cell => {
-        if (!cell.aboveThreshold()) moves.push(cell.index);
+        if (!aboveThreshold(cell)) moves.push(cell.index);
     });
 
     return moves;

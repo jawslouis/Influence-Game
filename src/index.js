@@ -4,7 +4,7 @@ import {setupComponents, updateElements} from "./uiComponents";
 import {
     endTurn,
     isUserTurn, restartClick,
-    selectButton, setAiStop, startAiWorker, startTurn, undoClick,
+    selectButton, setAiStop, setAiWorker, startAiWorker, startTurn, undoClick,
 } from "./gameController";
 import {gameHeight, gameWidth, GREEN, thresholdScale} from "./utilities";
 import {phaserMod} from "./phaserMod";
@@ -290,7 +290,7 @@ function create() {
         g.world.bringToTop(textGroup);
 
     updateElements(1);
-    startAiWorker(g);
+    setAiWorker(startAiWorker());
 }
 
 let filterIncrease;
