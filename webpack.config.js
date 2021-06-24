@@ -12,7 +12,10 @@ module.exports = (env, argv) => {
         output: {
             filename: isDev ? 'main.js' : 'main.[contenthash].js',
             path: path.resolve(__dirname, '../static/influence'),
+            clean: true,
+            // publicPath: '/static/',
         },
+        devtool: 'cheap-module-eval-source-map',
         optimization: {
             minimize: true,
             minimizer: [new TerserPlugin()],

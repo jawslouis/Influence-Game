@@ -1,18 +1,15 @@
-import {cellList, copyBoard, currentTurn, turnColor, turnValue, updateBoard, valueAtTurn} from "./gameState";
-import {GREEN} from "./utilities";
-import {setScore, settings} from "./uiComponents";
+/* Note: Cannot import game state values as this is run in a web worker thread */
 
-var simulBoard = [];
+import {valueAtTurn} from "./utilities";
+import {copyBoard, updateBoard} from "./gameState";
 
-export function greenIsOn() {
-    return settings.aiGreen !== 'None';
+
+// have to use pure function for web worker
+function turnGreen(turn) {
+    return turn % 2 === 1;
 }
 
-export function blueIsOn() {
-    return settings.aiBlue !== 'None';
-}
-
-function resetSimulation() {
+function resetSimulation({simulBoard, cellList}) {
 
     for (var i = 0; i < cellList.length; i++) {
         var c = simulBoard[i];
@@ -44,7 +41,9 @@ function difficultyToNum(diff, numChoices) {
 
 
 // Try selecting each cell and simulate 20 turns passing with no moves. The highest-scoring cell is chosen.
-function greedySearch() {
+function greedySearch({cellList, currentTurn, settings}) {
+
+    let simulBoard = [];
 
     if (simulBoard.length < 1) {
         // create a copy of the game board
@@ -61,17 +60,17 @@ function greedySearch() {
             continue;
         }
         var score;
-        resetSimulation();
+        resetSimulation({simulBoard, cellList});
         var ended = false;
 
         // update for many turns
-        simulBoard[i].value = turnValue();
+        simulBoard[i].value = valueAtTurn(currentTurn);
         for (var j = 0; j < 20 && !ended; j++) {
             ended = updateBoard(simulBoard);
             if (ended) break;
         }
 
-        if (turnColor === GREEN) score = boardScore(simulBoard);
+        if (turnGreen(currentTurn)) score = boardScore(simulBoard);
         else score = -boardScore(simulBoard);
 
         scoreList.push({score: score, cell: c});
@@ -81,27 +80,26 @@ function greedySearch() {
     // sort by descending score
     scoreList.sort((a, b) => b.score - a.score);
 
-    const result = turnColor === GREEN ? difficultyToNum(settings.aiGreen, scoreList.length) : difficultyToNum(settings.aiBlue, scoreList.length);
+    const result = turnGreen(currentTurn) ? difficultyToNum(settings.aiGreen, scoreList.length) : difficultyToNum(settings.aiBlue, scoreList.length);
     return scoreList[result].cell;
 }
 
-export function findBestCell() {
+export function findBestCell({settings, cellList, currentTurn}) {
 
-
-    let isGreen = turnColor === GREEN;
+    let isGreen = currentTurn % 2 === 1;
+    let result;
     if (isGreen && settings.aiGreen === 'Very Hard' || !isGreen && settings.aiBlue === 'Very Hard') {
         // for very hard AI
-        return MCTS();
-    }
+        result = MCTS({cellList, currentTurn});
+    } else result = greedySearch({cellList, currentTurn, settings});
 
-    // for easy to hard AI
-    return greedySearch();
-
+    return result.index;
 }
 
 // Monte Carlo tree search for the very hard AI
-function MCTS() {
+function MCTS({cellList, currentTurn}) {
 
+    const start = Date.now();
     let board = copyBoard(cellList, true);
     let root = new TreeNode(null, board, null, currentTurn - 1);
 
@@ -119,6 +117,8 @@ function MCTS() {
         }
     });
 
+    console.log(`bestchild green:${bestChild.greenWins} blue${bestChild.blueWins}`);
+    console.log(`Time taken: ${Date.now() - start}ms`);
     return cellList[bestChild.move];
 
 }
@@ -195,8 +195,7 @@ function expandNode(node) {
     }
     let move = randomElement(moves);
 
-    let newNode = node.createChild(move);
-    return newNode;
+    return node.createChild(move);
 }
 
 
@@ -258,7 +257,6 @@ class TreeNode {
         this.parent = parent;
         this.childMoves = [];
         this.isTerminal = false;
-        this.terminalResult = {green: 0, blue: 0};
     }
 
     numSimulations() {

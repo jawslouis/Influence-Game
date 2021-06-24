@@ -1,7 +1,9 @@
-import {threshold, valToColor, valToScale} from "./utilities";
+import {BLUE_BORDER, borderColor, GREEN_BORDER, threshold, valToColor, valToScale} from "./utilities";
 import {calculateFill} from "./animateTransition";
-import {BLUE_BORDER, cell_update_time, GREEN_BORDER, selected, turnBorderColor, turnValue} from "./gameState";
-import {g} from "./index";
+import {currentTurn, selected, turnValue} from "./gameState";
+import {g} from "./display"
+
+export const cell_update_time = 500;
 
 export class Cell {
 
@@ -55,7 +57,7 @@ export class Cell {
         this.bgBorder.scale.setTo(scale);
     }
 
-    updateBorder(animate) {
+    updateBorder(animate = false) {
 
         let val = Math.abs(this.value);
 
@@ -72,7 +74,7 @@ export class Cell {
                 this.setBorderAlpha(1);
             } else if (this.button === selected) {
                 this.setBorderAlpha(1);
-                this.setBorderTint(turnBorderColor);
+                this.setBorderTint(borderColor(currentTurn));
             } else {
                 this.setBorderAlpha(0);
             }
@@ -164,7 +166,7 @@ export class Cell {
         if (animate && this.prevValue !== this.value) {
             // animate the transition
 
-            calculateFill(this, cellVal);
+            calculateFill({cell: this, cellVal});
             if (cellScale < prevValScale)
                 this.button.tint = valToColor(cellVal);
 

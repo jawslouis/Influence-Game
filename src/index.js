@@ -2,40 +2,35 @@ import {Cell, valToScale} from "./cell";
 import {createUI} from "./animateTransition";
 import {setupComponents, updateElements} from "./uiComponents";
 import {
-    cellList,
     endTurn,
-    fillData,
-    isUserTurn,
-    selectButton,
-    selected,
-} from "./gameState";
+    isUserTurn, restartClick,
+    selectButton, setAiStop, startAiWorker, startTurn, undoClick,
+} from "./gameController";
 import {gameHeight, gameWidth, GREEN, thresholdScale} from "./utilities";
 import {phaserMod} from "./phaserMod";
 import {animateDeselect, endFill, startFill} from "./animateSelect";
-import {isMultiplayer, sendMove, setupMatchComponents} from "./multiplayer";
-import css from "../static/influence.css";
+import {sendMove} from "./multiplayer";
+import {d, g, group, fillData, setGame} from "./display";
+import {cellList, isMultiplayer, selected} from "./gameState";
 
-export var bmdIncrease;
-export var bmdDecrease;
+import css from "../static/influence.css";
+import {setupMultiplayer} from "./multiplayerInputs";
 
 const BACKGROUND = "#a1ffeb";
-
-export var g;
-export var group = {};
-
 const showCellNum = false;
 
 window.onload = function () {
 
-    g = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, "game-canvas", {
+    let game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, "game-canvas", {
         init: init,
         preload: preload,
         create: create,
         update: update,
     });
+    setGame(game);
 
     document.body.style.backgroundColor = BACKGROUND;
-    setupComponents();
+    setupComponents({undoClick, restartClick, setAiStop, startTurn});
     phaserMod();
 };
 
@@ -82,7 +77,6 @@ function pointerUp(pointer) {
     }
 
     if (!isUserTurn()) {
-        console.log('not user turn');
         return;
     }
 
@@ -108,7 +102,8 @@ function linkNeighbors(cell1, cell2) {
 
 function create() {
 
-    setupMatchComponents();
+
+    setupMultiplayer();
 
     g.stage.backgroundColor = BACKGROUND;
     g.input.maxPointers = 1;
@@ -123,12 +118,12 @@ function create() {
     cellOutline.anchor.setTo(0.5, 0.5);
 
     // create animation
-    bmdIncrease = g.make.bitmapData(gameWidth, gameHeight);
-    bmdDecrease = g.make.bitmapData(gameWidth, gameHeight);
+    d.bmdIncrease = g.make.bitmapData(gameWidth, gameHeight);
+    d.bmdDecrease = g.make.bitmapData(gameWidth, gameHeight);
     g.stage.updateTransform();
-    fillPattern = g.make.sprite(0, 200, 'cell_pattern');
-    fillPattern.tint = GREEN;
-    fillPattern.anchor.setTo(0.5, 0.5);
+    d.fillPattern = g.make.sprite(0, 200, 'cell_pattern');
+    d.fillPattern.tint = GREEN;
+    d.fillPattern.anchor.setTo(0.5, 0.5);
     spriteCellInner = g.make.sprite(0, 200, 'cell_inner');
     spriteCellInner.anchor.setTo(0.5, 0.5);
 
@@ -156,7 +151,7 @@ function create() {
     for (let col = 0; col < numCols; col++) {
         for (let row = 0; row < numRows; row++) {
 
-            if (col % 2 === 1 && row === numRows-1) break;
+            if (col % 2 === 1 && row === numRows - 1) break;
 
             var hwTuple = rowColToHeightWidth(row, col);
             var height = hwTuple.y;
@@ -172,7 +167,7 @@ function create() {
         grid.push([]);
         for (var row = 0; row < numRows; row++) {
 
-            if (col % 2 === 1 && row === numRows-1) break;
+            if (col % 2 === 1 && row === numRows - 1) break;
 
             var hwTuple = rowColToHeightWidth(row, col);
             var height = hwTuple.y;
@@ -267,7 +262,7 @@ function create() {
                 // link to the bottom left
                 if (col % 2 === 1) {
                     linkNeighbors(cell, grid[col - 1][row + 1]);
-                } else if (row < numRows-1) {
+                } else if (row < numRows - 1) {
                     linkNeighbors(cell, grid[col - 1][row]);
                 }
             }
@@ -275,8 +270,8 @@ function create() {
         }
     }
 
-    bmdIncrease.update();
-    bmdDecrease.update();
+    d.bmdIncrease.update();
+    d.bmdDecrease.update();
 
     // arrange the different layers;
 
@@ -285,8 +280,8 @@ function create() {
     g.world.bringToTop(group.valBorder);
     g.world.bringToTop(group.button);
 
-    filterIncrease = createUI(g, bmdIncrease);
-    filterDecrease = createUI(g, bmdDecrease);
+    filterIncrease = createUI(g, d.bmdIncrease);
+    filterDecrease = createUI(g, d.bmdDecrease);
 
     g.world.bringToTop(group.border);
     g.world.bringToTop(inputGroup);
@@ -294,26 +289,13 @@ function create() {
     if (showCellNum)
         g.world.bringToTop(textGroup);
 
-    updateElements();
-
+    updateElements(1);
+    startAiWorker(g);
 }
 
 let filterIncrease;
 let filterDecrease;
-export var fillPattern;
 
-
-export function clearBmd(update = false) {
-    bmdDecrease.clear();
-    bmdIncrease.clear();
-
-    if (update) updateBmd();
-}
-
-export function updateBmd() {
-    bmdIncrease.update();
-    bmdDecrease.update();
-}
 
 function update() {
     pointerFilterIncrease.x = fillData.time;
@@ -321,6 +303,4 @@ function update() {
     filterIncrease.update(pointerFilterIncrease);
     filterDecrease.update(pointerFilterDecrease);
 }
-
-
 

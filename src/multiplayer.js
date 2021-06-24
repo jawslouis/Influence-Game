@@ -1,42 +1,33 @@
-import {
-    cellList,
-    endTurn,
-    setSelected,
-    turnColor,
-    selected,
-    undo,
-    restart,
-    sendAnalytics,
-    processMoveList, updateScore
-} from "./gameState";
-import {GREEN} from "./utilities";
-import {animateSelect} from "./animateSelect";
-
-export var matchMsg;
+import {currentTurn, isMultiplayer, setMultiplayer, turnIsGreen, selected} from "./gameState";
+import {matchMsg} from "./uiComponents";
 
 export var socket = null;
-export var isMultiplayer;
+
+export const setSocket = (val) => socket = val;
+
 export var gameRoom = {id: null, green: null, blue: null};
 
+export function isOpponentTurn() {
+    return isMultiplayer && (turnIsGreen() && gameRoom.green !== socket.id || !turnIsGreen() && gameRoom.blue !== socket.id);
+}
 
-function multiplayerMenu(enabled) {
-    isMultiplayer = enabled;
+export function multiplayerMenu(enabled) {
+    setMultiplayer(enabled);
 
     let menu = document.getElementById("settings-multiplayer");
     let aiMenu = document.getElementById("settings-ai");
     if (enabled) {
         menu.style.display = 'flex';
         aiMenu.style.display = 'none';
-        greenTileLabel.classList.add('label-long');
-        blueTileLabel.classList.add('label-long');
+        greenScoreLabel.classList.add('label-long');
+        blueScoreLabel.classList.add('label-long');
         privateMatch.innerHTML = 'Exit Private Match';
         privateMatch.classList.add('match-btn-select');
     } else {
         menu.style.display = 'none';
         aiMenu.style.display = 'block';
-        greenTileLabel.classList.remove('label-long');
-
-        blueTileLabel.classList.remove('label-long');
+        blueScoreLabel.classList.remove('label-long');
+        greenScoreLabel.classList.remove('label-long');
         greenTileLabel.innerHTML = 'Green';
         blueTileLabel.innerHTML = 'Blue';
         privateMatch.innerHTML = 'Create Private Match';
@@ -44,22 +35,13 @@ function multiplayerMenu(enabled) {
     }
 }
 
-function startSocket() {
-
-    let url;
-    if (window.location.hostname === 'localhost') url = 'http://localhost:3000';
-    else url = `http://${window.location.hostname}`;
-
-    socket = io(url);
-
-    setupSocket();
-}
 
 let privateMatch;
 
-export function setupMatchComponents() {
+export var blueBtn, greenBtn, greenTileLabel, blueTileLabel, greenScoreLabel, blueScoreLabel;
 
-    matchMsg = document.getElementById('match-msg');
+export function setupMatchComponents({startSocket}) {
+
 
     let findMatch = document.getElementById('find-match');
     const selected = 'match-btn-select';
@@ -96,6 +78,8 @@ export function setupMatchComponents() {
 
     blueBtn = document.querySelector('#settings-multiplayer .blue-btn');
     greenBtn = document.querySelector('#settings-multiplayer .green-btn');
+    greenScoreLabel = document.getElementById('green-score');
+    blueScoreLabel = document.getElementById('blue-score');
     greenTileLabel = document.getElementById('green-tile-label');
     blueTileLabel = document.getElementById('blue-tile-label');
 
@@ -117,19 +101,9 @@ export function setupMatchComponents() {
         };
     });
 
-    let roomId = window.location.pathname.replace('/influence/', '');
-    if (!roomId.includes('influence') && roomId.length > 5) {
-        startSocket();
-        //Attempt to join the room
-        matchMsg.innerText = `Joining room ${roomId}...`;
-        socket.emit('private-room-join', roomId);
-    }
-
 }
 
-let blueBtn, greenBtn, greenTileLabel, blueTileLabel;
-
-function idToLink(id) {
+export function idToLink(id) {
 
     let location = window.location.hostname;
     if (window.location.port && window.location.port !== "") location += ":" + window.location.port;
@@ -137,13 +111,6 @@ function idToLink(id) {
     return `http://${location}/influence/${id}`;
 }
 
-function getColor(room) {
-    let color;
-    if (room.green === socket.id) color = 'green';
-    else if (room.blue === socket.id) color = 'blue';
-    else throw "Error: Cannot find player's color";
-    return color;
-}
 
 function updateUiColor(isGreen, fromEmit = false) {
     let myBtn, otherBtn, myTileLabel, otherTileLabel;
@@ -182,7 +149,8 @@ function updateUiColor(isGreen, fromEmit = false) {
     }
 }
 
-function updateUI(room, fromEmit = false) {
+
+export function updateUI(room, fromEmit = false) {
 
     if (gameRoom.id !== room.id) {
 
@@ -204,68 +172,22 @@ function updateUI(room, fromEmit = false) {
 
     if (currOpponent === null && prevOpponent !== null && prevOpponent !== socket.id) {
         matchMsg.innerHTML = 'Opponent left<br>' + matchMsg.innerHTML;
-    } else if (currOpponent !== null && prevOpponent === null  && prevOpponent !== socket.id) {
+    } else if (currOpponent !== null && prevOpponent === null && prevOpponent !== socket.id) {
         matchMsg.innerHTML = 'Opponent joined<br>' + matchMsg.innerHTML;
     }
 
     gameRoom = room;
 
-
     multiplayerMenu(true);
-
-
     updateUiColor(isGreen, fromEmit);
 
 }
 
 export function sendMove() {
-    socket.emit('move', {color: turnColor === GREEN ? 'green' : 'blue', index: selected.cell.index});
+    console.log('sending move ' + selected.cell.index);
+    socket.emit('move', {color: currentTurn % 2 === 1 ? 'green' : 'blue', index: selected.cell.index});
 }
 
 export function send(msg) {
     socket.emit(msg);
-}
-
-function setupSocket() {
-    socket.on('private-room', (room) => {
-        let link = idToLink(room.id);
-        updateUI(room);
-        matchMsg.innerHTML = `You are now in room ${room.id} as the ${getColor(room)} player. Share the link: <a href="${link}">${link}</a>`;
-        sendAnalytics('createPrivateMatch');
-        restart();
-    });
-
-    socket.on('private-room-joined', (room) => {
-        updateUI(room);
-        let status;
-        if (room.green !== null && room.blue !== null) status = 'Both players are in the room.';
-        else status = 'Waiting for an opponent.';
-
-        matchMsg.innerHTML = `Joined room ${room.id} as the ${getColor(room)} player. ${status}`;
-        sendAnalytics('joinPrivateMatch');
-        processMoveList(room.moveList);
-        updateScore();
-    });
-
-    socket.on('msg-no-action', (msg) => {
-        matchMsg.innerHTML = msg + '<br>' + matchMsg.innerHTML;
-    });
-
-    socket.on('update-players', (room) => {
-        updateUI(room, true);
-    });
-
-    socket.on('move', (move) => {
-        setSelected(cellList[move.index].button);
-        animateSelect();
-        endTurn();
-    });
-    socket.on('restart', () => {
-        restart();
-        matchMsg.innerHTML = `Opponent restarted the game`;
-    });
-    socket.on('undo', () => {
-        matchMsg.innerHTML = 'Opponent cancelled the last move<br>' + matchMsg.innerHTML;
-        undo();
-    });
 }

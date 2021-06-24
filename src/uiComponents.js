@@ -1,6 +1,4 @@
-import {undo, restart, currentTurn, turnColor, setAiStop, startTurn, restartClick, undoClick} from "./gameState";
-import {GREEN} from "./utilities";
-import {setupMatchComponents} from "./multiplayer";
+import {currentTurn} from "./gameState";
 
 const GREEN_STR = '#038003';
 const BLUE_STR = '#005bd5';
@@ -12,17 +10,23 @@ export var settings = {
     aiGreen: 'None',
 };
 
+export const greenIsOn = () => settings.aiGreen !== 'None';
+export const blueIsOn = () => settings.aiBlue !== 'None';
+
 const tileSuffix = (score) => score === 1 ? ' tile' : ' tiles';
+
+export var matchMsg;
 
 export function setScore(greenScore, blueScore) {
     document.getElementById('score-green').innerHTML = greenScore + tileSuffix(greenScore);
     document.getElementById('score-blue').innerHTML = blueScore + tileSuffix(blueScore);
 }
 
-function setScoreBorder() {
+function setScoreBorder(currentTurn) {
+
     let greenBorder = document.getElementById('green-score-border');
     let blueBorder = document.getElementById('blue-score-border');
-    if (turnColor === GREEN) {
+    if (currentTurn % 2 === 1) {
         blueBorder.style.opacity = '0';
         greenBorder.style.opacity = '1';
     } else {
@@ -32,8 +36,8 @@ function setScoreBorder() {
 
 }
 
-export function updateElements() {
-    setScoreBorder();
+export function updateElements(currentTurn) {
+    setScoreBorder(currentTurn);
     let opacity = currentTurn === 1 ? "0.5" : "1";
     document.getElementById('undo-btn').style.opacity = opacity;
 }
@@ -60,8 +64,15 @@ export function showGameOver(greenScore, blueScore) {
 }
 
 let settingsBg;
+let gameAiStop, gameStartTurn;
 
-export function setupComponents() {
+export function setupComponents({undoClick, restartClick, setAiStop, startTurn}) {
+
+    gameAiStop = setAiStop;
+    gameStartTurn = startTurn;
+
+    matchMsg = document.getElementById('match-msg');
+
     document.getElementById('undo-btn').onclick = () => {
         if (currentTurn <= 1) return; // do nothing
         rotateUndo();
@@ -102,23 +113,24 @@ export function setupComponents() {
 
     // set blue Easy AI
     document.querySelector('.blue .btn-grp :nth-child(2)').click();
+    // document.querySelector('.blue .btn-grp :nth-child(5)').click();
 }
 
 
 function showSettings(show) {
 
     if (show) {
-        setAiStop(true);
+        gameAiStop(true);
         settingsBg.style.visibility = 'visible';
         settingsOverlay.classList.remove('hidden');
         settingsOverlay.classList.add('visible');
     } else {
-        setAiStop(false);
+        gameAiStop(false);
         settingsBg.style.visibility = 'hidden';
         settingsOverlay.classList.remove('visible');
         settingsOverlay.classList.add('hidden');
 
-        startTurn();
+        gameStartTurn();
     }
 }
 

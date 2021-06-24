@@ -374,6 +374,10 @@ div.btn-selected {
 }
 
 .label-long {
+    width: 210px;
+}
+
+.label-long .score-color {
     padding-left: 0.5em;
     width: 100px;
 }

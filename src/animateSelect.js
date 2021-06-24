@@ -1,15 +1,8 @@
-import {group, g, clearBmd, updateBmd} from "./index";
-import {gameWidth, getColorBandFromValue} from "./utilities";
-import {
-    cell_update_time,
-    cellList,
-    copyBoard,
-    fillData,
-    selected, setSelected,
-    turnValue,
-    updateBoard
-} from "./gameState";
+import {gameWidth, getColorBandFromValue, valueAtTurn} from "./utilities";
 import {valToScale} from "./utilities";
+import {cell_update_time} from "./cell";
+import {g, group, clearBmd, fillData, updateBmd} from "./display";
+import {cellList, copyBoard, currentTurn, turnValue, updateBoard, selected, setSelected} from "./gameState";
 
 const selectTime = 200;
 const deselectTime = 1000;
@@ -23,7 +16,6 @@ let futureCellList = null;
 let isFutureColor = false;
 
 export function animateSelect() {
-
     let button = selected;
     let cell = button.cell;
 
@@ -151,7 +143,7 @@ export function animateDeselect() {
     // transition color back to original
     if (selected == null) return;
 
-    let currentSelected = selected; // needed to keep track of reference
+    let currentSelected = selected;
 
     // update color
     let colorBlend = {val: 0};
@@ -190,7 +182,7 @@ export function animateDeselect() {
     stopAnimateFuture();
     checkGroup(currentSelected);
 
-    currentSelected.cell.updateBorder();
+    currentSelected.cell.updateBorder(false);
 
 }
 
@@ -199,6 +191,7 @@ function animateTransition(cells, hasDelay, postUpdate = null,) {
     clearBmd(true);
     fillData.time = startFill;
     let delay = hasDelay ? 1000 : 0;
+
     transitionTween = g.add.tween(fillData).to({time: endFill}, cell_update_time, "Linear", false, delay);
 
     transitionTween.onStart.add(() => {
