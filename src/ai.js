@@ -1,6 +1,6 @@
-import {cellList, copyBoard, turnColor, turnValue, updateBoard} from "./gameState";
+import {cellList, copyBoard, currentTurn, turnColor, turnValue, updateBoard, valueAtTurn} from "./gameState";
 import {GREEN} from "./utilities";
-import {settings} from "./uiComponents";
+import {setScore, settings} from "./uiComponents";
 
 var simulBoard = [];
 
@@ -42,14 +42,9 @@ function difficultyToNum(diff, numChoices) {
     }
 }
 
-export function findBestCell() {
 
-
-    if (simulBoard.length < 1) {
-        // create a copy of the game board
-        simulBoard = copyBoard(cellList);
-    }
-
+// Try selecting each cell and simulate 20 turns passing with no moves. The highest-scoring cell is chosen.
+function greedySearch() {
     let scoreList = [];
 
     for (var i = 0; i < cellList.length; i++) {
@@ -70,6 +65,7 @@ export function findBestCell() {
         simulBoard[i].value = turnValue();
         for (var j = 0; j < 20 && !ended; j++) {
             ended = updateBoard(simulBoard);
+            if (ended) break;
         }
 
         if (turnColor === GREEN) score = boardScore(simulBoard);
@@ -84,5 +80,230 @@ export function findBestCell() {
 
     const result = turnColor === GREEN ? difficultyToNum(settings.aiGreen, scoreList.length) : difficultyToNum(settings.aiBlue, scoreList.length);
     return scoreList[result].cell;
+}
 
+export function findBestCell() {
+
+
+    if (simulBoard.length < 1) {
+        // create a copy of the game board
+        simulBoard = copyBoard(cellList, true);
+    }
+
+    let isGreen = turnColor === GREEN;
+    if (isGreen && settings.aiGreen === 'Very Hard' || !isGreen && settings.aiBlue === 'Very Hard') {
+        // for very hard AI
+        return MCTS(simulBoard);
+    }
+
+    // for easy to hard AI
+    return greedySearch();
+
+}
+
+// Monte Carlo tree search for the very hard AI
+function MCTS(board) {
+
+    let root = new TreeNode(null, board, null, currentTurn-1);
+
+
+    for (let i = 0; i < 10000; i++) {
+
+        if (i % 100 === 0)
+            console.log('iteration ' + i);
+        let leaf = selectLeaf(root);
+        simulatePlay(leaf);
+    }
+
+    let mostSimul = 0;
+    let bestChild = null;
+    root.children.forEach(child => {
+        if (child.numSimulations() > mostSimul) {
+            mostSimul = child.numSimulations();
+            bestChild = child;
+        }
+    });
+
+    console.log('selecting move ' + bestChild.move);
+    return cellList[bestChild.move];
+
+}
+
+function getScore(simulateBoard) {
+
+    let greenScore = 0;
+    let blueScore = 0;
+    simulateBoard.forEach(cell => {
+        if (cell.aboveThreshold()) {
+            if (cell.value > 0) {
+                greenScore++;
+            } else {
+                blueScore++;
+            }
+        }
+    });
+
+    let result = {green: 0, blue: 0};
+    if (greenScore > blueScore) result.green++;
+    else if (blueScore > greenScore) result.blue++;
+    else {
+        // it's a tie
+        result.green += 0.5;
+        result.blue += 0.5;
+    }
+    return result;
+}
+
+function simulatePlay(node) {
+    let result;
+
+    if (node.isTerminal) result = node.terminalResult;
+    else {
+        let moves = getValidMoves(node.board);
+        if (moves.length === 0) {
+            node.isTerminal = true;
+            node.terminalResult = getScore(node.board);
+            result = node.terminalResult;
+        } else {
+
+            let simulateBoard = copyBoard(node.board);
+            let turn = node.turn;
+            while (moves.length > 0) {
+                turn++;
+                let move = randomElement(moves);
+                simulateBoard[move].value = valueAtTurn(turn);
+                updateBoard(simulateBoard);
+                moves = getValidMoves(simulateBoard);
+                if (turn > 100) break;
+            }
+            result = getScore(simulateBoard);
+        }
+    }
+
+    // propagation step
+    let parent = node;
+    while (parent !== null) {
+        parent.addScore(result);
+        parent = parent.parent;
+    }
+
+
+}
+
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
+// only called when this is a leaf node
+function expandNode(node) {
+
+    let moves = getValidMoves(node.board);
+    if (moves.length === 0) {
+        return node;
+    }
+    let move = randomElement(moves);
+
+    let newNode = node.createChild(move);
+    return newNode;
+}
+
+
+function getValidMoves(board) {
+    let moves = [];
+    board.forEach(cell => {
+        if (!cell.aboveThreshold()) moves.push(cell.index);
+    });
+
+    return moves;
+}
+
+function randomElement(list) {
+    let selection = getRandomInt(list.length);
+    return list[selection];
+}
+
+
+function selectLeaf(node) {
+
+    if (node.children.length === 0) return expandNode(node);
+
+    let hasUnvisitedChild = false;
+    node.children.forEach(child => {
+        if (child.greenWins + child.blueWins <= 0) hasUnvisitedChild = true;
+    });
+
+
+    let moves = getValidMoves(node.board);
+    if (node.children.length < moves.length) {
+        // create a new child and return it
+        for (const move of moves) {
+            if (!node.childMoves.includes(move)) {
+                return node.createChild(move);
+            }
+        }
+    }
+
+    let selectionScore = node.children[0].getSelectionScore(), selectedChild = node.children[0];
+    node.children.forEach(child => {
+        let childScore = child.getSelectionScore();
+
+        if (childScore > selectionScore) {
+            selectionScore = childScore;
+            selectedChild = child;
+        }
+    });
+    return selectLeaf(selectedChild);
+}
+
+// tree node for MCTS
+class TreeNode {
+    constructor(parent, board, move, turn) {
+        this.children = [];
+        this.greenWins = 0;
+        this.blueWins = 0;
+        this.move = move; // move to get to this board state
+        this.turn = turn; // turn where move was made
+        this.board = board;
+        this.ended = false;
+        this.parent = parent;
+        this.childMoves = [];
+        this.isTerminal = false;
+        this.terminalResult = {green: 0, blue: 0};
+    }
+
+    numSimulations() {
+        return this.blueWins + this.greenWins;
+    }
+
+    addScore(score) {
+        this.blueWins += score.blue;
+        this.greenWins += score.green;
+    }
+
+    getSelectionScore() {
+
+        let totalSimulations = this.greenWins + this.blueWins;
+        let wins = this.turn % 2 === 1 ? this.greenWins : this.blueWins;
+        let exploitation = wins / totalSimulations;
+
+        let parentSimulations = this.parent.greenWins + this.parent.blueWins;
+        let factor = 1.414;
+        let exploration = factor * Math.sqrt(Math.log(parentSimulations) / totalSimulations);
+
+        return exploitation + exploration;
+
+    }
+
+    createChild(move) {
+
+        let nextBoard = copyBoard(this.board, true);
+        let nextTurn = this.turn + 1;
+        nextBoard[move].value = valueAtTurn(nextTurn);
+        updateBoard(nextBoard);
+        let child = new TreeNode(this, nextBoard, move, nextTurn);
+        this.childMoves.push(move);
+        this.children.push(child);
+        return child;
+    }
 }

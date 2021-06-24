@@ -23,7 +23,7 @@ const BACKGROUND = "#a1ffeb";
 export var g;
 export var group = {};
 
-const showCellNum = false;
+const showCellNum = true;
 
 window.onload = function () {
 

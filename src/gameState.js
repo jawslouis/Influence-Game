@@ -27,10 +27,13 @@ export const cell_update_time = 500;
 let hasStarted = false;
 
 export function turnValue() {
+    return valueAtTurn(currentTurn);
+}
 
-    if (currentTurn === 1) {
+export function valueAtTurn(turn){
+    if (turn === 1) {
         return 0.57;
-    } else if (currentTurn % 2 === 1) {
+    } else if (turn % 2 === 1) {
         return 1;
     } else {
         return -1;
@@ -332,16 +335,16 @@ export function updateBoard(board) {
     return ended;
 }
 
-export function copyBoard(original) {
+export function copyBoard(original, copyVal = false) {
 
-    let copy = original.map(cell => cell.copyCell());
+    let copy = original.map(cell => copyVal ? cell.copyCellVal() : cell.copyCell());
 
-    for (var i = 0; i < original.length; i++) {
-        for (var j = 0; j < original[i].neighbors.length; j++) {
-            var idx = original[i].neighbors[j].index;
+    original.forEach((origCell, i) => {
+        origCell.neighbors.forEach(neighbor => {
+            let idx = neighbor.index;
             copy[i].neighbors.push(copy[idx]);
-        }
-    }
-
+        });
+    });
     return copy;
+
 }
