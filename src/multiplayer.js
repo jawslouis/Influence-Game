@@ -202,9 +202,9 @@ function updateUI(room, fromEmit = false) {
         prevOpponent = gameRoom.green;
     }
 
-    if (currOpponent === null && prevOpponent !== null) {
+    if (currOpponent === null && prevOpponent !== null && prevOpponent !== socket.id) {
         matchMsg.innerHTML = 'Opponent left<br>' + matchMsg.innerHTML;
-    } else if (currOpponent !== null && prevOpponent === null) {
+    } else if (currOpponent !== null && prevOpponent === null  && prevOpponent !== socket.id) {
         matchMsg.innerHTML = 'Opponent joined<br>' + matchMsg.innerHTML;
     }
 
@@ -237,7 +237,11 @@ function setupSocket() {
 
     socket.on('private-room-joined', (room) => {
         updateUI(room);
-        matchMsg.innerHTML = `Joined room ${room.id} as the ${getColor(room)} player`;
+        let status;
+        if (room.green !== null && room.blue !== null) status = 'Both players are in the room.';
+        else status = 'Waiting for an opponent.';
+
+        matchMsg.innerHTML = `Joined room ${room.id} as the ${getColor(room)} player. ${status}`;
         sendAnalytics('joinPrivateMatch');
         processMoveList(room.moveList);
         updateScore();
