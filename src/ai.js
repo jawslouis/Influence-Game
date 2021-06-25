@@ -1,7 +1,8 @@
 /* Note: Cannot import game state values as this is run in a web worker thread */
 import {valueAtTurn} from "./utilities";
 import {updateBoard} from "./gameState";
-import {copyBoard, aboveThreshold} from "./cell";
+import {aboveThreshold} from "./cell";
+import {copyBoard} from "./cellController";
 
 
 // have to use pure function for web worker

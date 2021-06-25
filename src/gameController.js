@@ -20,7 +20,8 @@ import {
     setCurrentTurn, turnIsGreen, isMultiplayer
 } from "./gameState";
 import {d, g} from "./display";
-import {copyBoard} from "./cell";
+import {precalculateFill} from "./animateTransition";
+import {copyBoard,resetCell} from "./cellController";
 
 
 export var aiStop = false;
@@ -183,7 +184,7 @@ export function restart() {
     setCurrentTurn(1);
     for (var i = 0; i < cellList.length; i++) {
         var c = cellList[i];
-        c.reset();
+        resetCell(c);
     }
 
 
@@ -250,6 +251,8 @@ export function startTurn() {
         startAI();
 
     }
+
+    setTimeout(precalculateFill,0);
 
 }
 

@@ -1,5 +1,5 @@
-import {Cell, valToScale} from "./cell";
-import {createUI, endFill, startFill} from "./animateTransition";
+import {Cell} from "./cell";
+import {setupFilters, endFill, startFill} from "./animateTransition";
 import {setupComponents, updateElements} from "./uiComponents";
 import {
     endTurn,
@@ -67,7 +67,6 @@ function rowColToHeightWidth(row, col) {
 
 var grid_width;
 var grid_height;
-export var spriteCellInner;
 
 function pointerUp(pointer) {
 
@@ -124,8 +123,8 @@ function create() {
     d.fillPattern = g.make.sprite(0, 200, 'cell_pattern');
     d.fillPattern.tint = GREEN;
     d.fillPattern.anchor.setTo(0.5, 0.5);
-    spriteCellInner = g.make.sprite(0, 200, 'cell_inner');
-    spriteCellInner.anchor.setTo(0.5, 0.5);
+    d.spriteCellInner = g.make.sprite(0, 200, 'cell_inner');
+    d.spriteCellInner.anchor.setTo(0.5, 0.5);
 
     var bgTile = g.make.sprite(0, 0, 'cell_bg');
     bgTile.anchor.setTo(0.5, 0.5);
@@ -141,7 +140,7 @@ function create() {
         font: "32px Arial",
         fill: "#000000",
         wordWrap: true,
-        wordWrapWidth: spriteCellInner.width,
+        wordWrapWidth: d.spriteCellInner.width,
         align: "center",
     };
 
@@ -215,7 +214,7 @@ function create() {
             inputGroup.add(cellInput);
 
 
-            bmdBackground.draw(spriteCellInner, width, height);
+            bmdBackground.draw(d.spriteCellInner, width, height);
             bmdBackground.draw(cellOutline, width, height);
 
 
@@ -280,8 +279,9 @@ function create() {
     g.world.bringToTop(group.valBorder);
     g.world.bringToTop(group.button);
 
-    filterIncrease = createUI(g, d.bmdIncrease);
-    filterDecrease = createUI(g, d.bmdDecrease);
+
+    setupFilters(g);
+
 
     g.world.bringToTop(group.border);
     g.world.bringToTop(inputGroup);
@@ -293,14 +293,10 @@ function create() {
     setAiWorker(startAiWorker());
 }
 
-let filterIncrease;
-let filterDecrease;
-
-
 function update() {
     pointerFilterIncrease.x = fillData.time;
     pointerFilterDecrease.x = startFill - (fillData.time - endFill);
-    filterIncrease.update(pointerFilterIncrease);
-    filterDecrease.update(pointerFilterDecrease);
+    d.increase.filter.update(pointerFilterIncrease);
+    d.decrease.filter.update(pointerFilterDecrease);
 }
 

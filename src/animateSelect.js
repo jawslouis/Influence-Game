@@ -1,9 +1,9 @@
 import {getColorBandFromValue} from "./utilities";
 import {valToScale} from "./utilities";
-import {copyBoard} from "./cell";
-import {g, group, clearBmd,  d} from "./display";
+import {g, group, hideBmd} from "./display";
 import {cellList, turnValue, updateBoard, selected, setSelected} from "./gameState";
 import {animateTransition, setTransitionTween, transitionTween} from "./animateTransition";
+import {copyBoard, updateCellColor} from "./cellController";
 
 const selectTime = 200;
 const deselectTime = 1000;
@@ -45,7 +45,7 @@ export function animateSelect() {
     cell.border.bringToTop();
 
     // select button
-    button.cell.updateCellColor(false);
+    updateCellColor(button.cell, false);
 
     // animate selection
     let buttonScale = valToScale(turnValue());
@@ -90,8 +90,7 @@ export function stopAnimateFuture({clearNeedsUpdate}) {
         setTransitionTween(null);
     }
 
-    if (!d.bmdCleared)
-        clearBmd(clearNeedsUpdate);
+    hideBmd();
 
     if (futureCellList !== null) {
         futureCellList.forEach(cell => {
@@ -107,7 +106,7 @@ export function stopAnimateFuture({clearNeedsUpdate}) {
 
     if (isFutureColor) {
         cellList.forEach(cell => {
-            cell.updateCellColor();
+            updateCellColor(cell);
         });
         isFutureColor = false;
     }
@@ -177,7 +176,7 @@ export function animateDeselect() {
     scaleTween.start();
 
     setSelected(null);
-    stopAnimateFuture({clearNeedsUpdate:true});
+    stopAnimateFuture({clearNeedsUpdate: true});
     checkGroup(currentSelected);
 
     currentSelected.cell.updateBorder(false);

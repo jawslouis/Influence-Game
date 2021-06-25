@@ -1,24 +1,9 @@
-import {BLUE_BORDER, borderColor, GREEN_BORDER, threshold, valToColor, valToScale} from "./utilities";
-import {calculateFill, transition_time} from "./animateTransition";
-import {currentTurn, selected, turnValue} from "./gameState";
+import {BLUE_BORDER, borderColor, GREEN_BORDER, threshold, transition_time, valToColor} from "./utilities";
+import {cellList, currentTurn, selected, turnValue} from "./gameState";
 import {g} from "./display"
 
 export function aboveThreshold(cell) {
     return Math.abs(cell.value) >= threshold;
-}
-
-export function copyBoard(original, copyVal = false) {
-
-    let copy = original.map(cell => copyVal ? copyCellVal(cell) : cell.copyCell());
-
-    original.forEach((origCell, i) => {
-        origCell.neighbors.forEach(neighbor => {
-            let idx = neighbor.index;
-            copy[i].neighbors.push(copy[idx]);
-        });
-    });
-    return copy;
-
 }
 
 export function copyCellVal(c) {
@@ -43,6 +28,7 @@ export class Cell {
         this.borderAlphaTween = null;
         this.bgBorder = null;
         this.valBorder = null;
+        this.renderedValue = {from: 0, to: 0};
 
     }
 
@@ -52,6 +38,7 @@ export class Cell {
         cell.border = this.border;
         cell.valBorder = this.valBorder;
         cell.bgBorder = this.bgBorder;
+        cell.renderedValue = this.renderedValue;
         return cell;
     }
 
@@ -72,6 +59,12 @@ export class Cell {
         this.valBorder.scale.setTo(scale);
         this.bgBorder.scale.setTo(scale);
     }
+
+    needCalculateFill() {
+        let renderVal = cellList[this.index].renderedValue;
+        return renderVal.to !== this.value || renderVal.from !== this.prevValue;
+    }
+
 
     updateBorder(animate = false) {
 
@@ -129,12 +122,6 @@ export class Cell {
         this.borderAlphaTween.start();
     }
 
-    reset() {
-        this.value = 0;
-        this.prevValue = 0;
-        this.nextValue = 0;
-        this.updateCellColor(false);
-    }
 
     aboveThreshold() {
         return aboveThreshold(this);
@@ -154,7 +141,6 @@ export class Cell {
         }
 
         neighborAvg = neighborAvg / count;
-
         this.nextValue = Math.max(Math.min(neighborAvg * 0.3 + this.value, 1), -1);
     }
 
@@ -169,28 +155,6 @@ export class Cell {
         this.button.scale.setTo(cellScale);
     }
 
-    updateCellColor(animate = false) {
-
-        let cellVal = this.button === selected ? turnValue() : this.value;
-
-        let cellScale = valToScale(this.value);
-        let prevValScale = valToScale(this.prevValue);
-
-        this.updateScale(cellScale, prevValScale, animate);
-        this.updateBorder(animate);
-
-        if (animate && this.prevValue !== this.value) {
-            // animate the transition
-
-            calculateFill({cell: this, cellVal});
-            if (cellScale < prevValScale)
-                this.button.tint = valToColor(cellVal);
-
-        } else {
-            this.button.tint = valToColor(cellVal);
-        }
-
-    }
 
     fillPrevColor() {
         let colorValue = this.button === selected ? turnValue() : this.prevValue;

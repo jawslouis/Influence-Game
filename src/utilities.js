@@ -77,3 +77,5 @@ export function valueAtTurn(turn) {
         return -1;
     }
 }
+
+export const transition_time = 500;

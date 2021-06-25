@@ -11,13 +11,20 @@ export function setGame(game) {
     g = game;
 }
 
-export function clearBmd(update = false) {
+export function clearBmd() {
     d.bmdDecrease.clear();
     d.bmdIncrease.clear();
-
     d.bmdCleared = true;
+}
 
-    if (update) updateBmd();
+export function hideBmd() {
+    d.increase.sprite.visible = false;
+    d.decrease.sprite.visible = false;
+}
+
+export function showBmd() {
+    d.increase.sprite.visible = true;
+    d.decrease.sprite.visible = true;
 }
 
 export function updateBmd() {

@@ -4,14 +4,14 @@ Shader method is used because of speed (60FPS). Benchmarks for other approaches:
 - Identifying the hexagon using math in ProcessPixels: 15 FPS
 - Identifying hexagon using containers in ProcessPixels: 2 FPS
  */
-import {gameHeight, gameWidth, valToColor, valToScale} from "./utilities";
-import {clearBmd, d, fillData, g, updateBmd} from "./display";
+import {gameHeight, gameWidth, transition_time, valToColor, valToScale} from "./utilities";
+import {clearBmd, d, fillData, g, hideBmd, showBmd, updateBmd} from "./display";
+import {cellList, updateBoard} from "./gameState";
+import {copyBoard, updateCellColor} from "./cellController";
 
 // Using game width. Since pointer co-ordinates have to be used, the shader will convert from game width to 0-1 range.
 export const startFill = gameWidth * 0.77;
 export const endFill = gameWidth * 0.24;
-
-export const transition_time = 500;
 
 var fragmentSrc = [
 
@@ -43,7 +43,17 @@ var fragmentSrc = [
     "}"
 ];
 
-export function createUI(g, bmd) {
+
+export function setupFilters(g) {
+
+    d.increase = createFilter(g, d.bmdIncrease);
+    d.decrease = createFilter(g, d.bmdDecrease);
+
+
+}
+
+function createFilter(g, bmd) {
+
     var sprite = g.add.sprite(0, 0, bmd);
     sprite.width = bmd.width;
     sprite.height = bmd.height;
@@ -57,7 +67,7 @@ export function createUI(g, bmd) {
 
     sprite.filters = [filter];
 
-    return filter;
+    return {filter, sprite};
 
 }
 
@@ -69,8 +79,23 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+let count = 0;
 
-export function calculateFill({cell, cellVal}) {
+function printCount(text) {
+    // console.log(`${text} count = ${count}`);
+    count = 0;
+}
+
+export function calculateFill(cell) {
+    count++;
+    cellList[cell.index].renderedValue = {from: cell.prevValue, to: cell.value};
+
+    if (cell.prevValue === cell.value) {
+        // just need to erase current fill.
+        eraseFill(cell);
+        return;
+    }
+
 // figure out which are our influencers
     var influencers = [];
 
@@ -82,14 +107,14 @@ export function calculateFill({cell, cellVal}) {
         }
     }
 
-    let currScale = valToScale(cellVal);
+    let currScale = valToScale(cell.value);
     let prevScale = valToScale(cell.prevValue);
     let isIncreasing = currScale > prevScale;
 
     let cellColor, cellScale;
 
     if (isIncreasing) {
-        cellColor = valToColor(cellVal);
+        cellColor = valToColor(cell.value);
         cellScale = currScale;
     } else {
         cellColor = valToColor(cell.prevValue);
@@ -122,7 +147,7 @@ export function calculateFill({cell, cellVal}) {
 
     // for performance, only select top 2 influencers
     if (influencers.length > 1) {
-        topInf.push(influencers[1].n)
+        topInf.push(influencers[1].n);
         delta += influencers[1].diff;
     }
 
@@ -165,9 +190,38 @@ export function calculateFill({cell, cellVal}) {
 export var transitionTween = null;
 export const setTransitionTween = (val) => transitionTween = val;
 
+let futureCellList = null;
+
+export function eraseFill(cell) {
+    d.bmdIncrease.draw(d.spriteCellInner, cell.button.x, cell.button.y, d.spriteCellInner.width, d.spriteCellInner.height, 'destination-out');
+    d.bmdDecrease.draw(d.spriteCellInner, cell.button.x, cell.button.y, d.spriteCellInner.width, d.spriteCellInner.height, 'destination-out');
+}
+
+
+export function precalculateFill() {
+    clearBmd();
+
+    if (futureCellList === null)
+        futureCellList = copyBoard(cellList);
+
+    // need this regardless of whether board was copied
+    cellList.forEach(cell => {
+        futureCellList[cell.index].value = cell.value;
+    });
+
+    updateBoard(futureCellList);
+
+
+    futureCellList.forEach(cell => {
+        if (cell.needCalculateFill()) {
+            calculateFill(cell);
+        }
+    });
+
+    printCount('precalculateFill:');
+}
+
 export function animateTransition(cells, hasDelay, postUpdate = null,) {
-    if (!d.bmdCleared)
-        clearBmd(false);
 
     fillData.time = startFill;
     let delay = hasDelay ? 1000 : 0;
@@ -177,18 +231,20 @@ export function animateTransition(cells, hasDelay, postUpdate = null,) {
     transitionTween.onStart.add(() => {
         // do this expensive code when the tween actually starts. user may move on to another cell before this is called. so we can skip executing the code.
         for (var i = 0; i < cells.length; i++) {
-            cells[i].updateCellColor(true);
+            updateCellColor(cells[i], true);
         }
+        printCount('animateTransition:');
         updateBmd();
+        showBmd();
     });
 
     transitionTween.onComplete.add(function () {
 
         for (var i = 0; i < cells.length; i++) {
-            cells[i].updateCellColor(false);
+            updateCellColor(cells[i], false);
         }
 
-        clearBmd(true);
+        hideBmd();
 
         transitionTween = null;
 
