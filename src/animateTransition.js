@@ -197,6 +197,23 @@ export function eraseFill(cell) {
     d.bmdDecrease.draw(d.spriteCellInner, cell.button.x, cell.button.y, d.spriteCellInner.width, d.spriteCellInner.height, 'destination-out');
 }
 
+function precalculateFillFn(index) {
+    let i;
+    for (i = index; i < futureCellList.length && i - index < 18; i++) {
+        let cell = futureCellList[i];
+        if (cell.needCalculateFill()) {
+            calculateFill(cell);
+        }
+    }
+    if (i <  futureCellList.length){
+        setTimeout(()=>precalculateFillFn(i),0);
+    } else {
+
+        printCount('precalculateFill:');
+    }
+
+}
+
 
 export function precalculateFill() {
     clearBmd();
@@ -212,13 +229,14 @@ export function precalculateFill() {
     updateBoard(futureCellList);
 
 
-    futureCellList.forEach(cell => {
-        if (cell.needCalculateFill()) {
-            calculateFill(cell);
-        }
-    });
+    precalculateFillFn(0);
 
-    printCount('precalculateFill:');
+    // futureCellList.forEach(cell => {
+    //     if (cell.needCalculateFill()) {
+    //         calculateFill(cell);
+    //     }
+    // });
+
 }
 
 export function animateTransition(cells, hasDelay, postUpdate = null,) {
