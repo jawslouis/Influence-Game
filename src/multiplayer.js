@@ -184,7 +184,6 @@ export function updateUI(room, fromEmit = false) {
 }
 
 export function sendMove() {
-    console.log('sending move ' + selected.cell.index);
     socket.emit('move', {color: currentTurn % 2 === 1 ? 'green' : 'blue', index: selected.cell.index});
 }
 

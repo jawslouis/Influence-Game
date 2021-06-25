@@ -19,7 +19,7 @@ import {
     setSelected,
     setCurrentTurn, turnIsGreen, isMultiplayer
 } from "./gameState";
-import {g} from "./display";
+import {d, g} from "./display";
 import {copyBoard} from "./cell";
 
 
@@ -73,10 +73,12 @@ export function sendAnalytics(action) {
         data.result = resultString;
     }
 
-    gtag('event', action, {
+    // the below takes about 14ms. Execute it after the main UI loop is completed
+    setTimeout(() => gtag('event', action, {
         'event_category': 'influence',
         'event_label': JSON.stringify(data),
-    });
+    }), 0);
+
 }
 
 export function processMoveList(moves) {
@@ -114,6 +116,8 @@ export function updateScore() {
 }
 
 export function endTurn() {
+
+    d.bmdCleared = false;
 
     if (!hasStarted) {
         // game started. send analytics event

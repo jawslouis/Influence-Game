@@ -1,9 +1,7 @@
 import {BLUE_BORDER, borderColor, GREEN_BORDER, threshold, valToColor, valToScale} from "./utilities";
-import {calculateFill} from "./animateTransition";
+import {calculateFill, transition_time} from "./animateTransition";
 import {currentTurn, selected, turnValue} from "./gameState";
 import {g} from "./display"
-
-export const cell_update_time = 500;
 
 export function aboveThreshold(cell) {
     return Math.abs(cell.value) >= threshold;
@@ -107,7 +105,7 @@ export class Cell {
                 if (this.button !== selected) {
                     let prevAlpha = prevVal > threshold ? 1 : 0;
 
-                    this.doBorderTween(prevAlpha, borderAppearing, cell_update_time, Phaser.Easing.Exponential.InOut);
+                    this.doBorderTween(prevAlpha, borderAppearing, transition_time, Phaser.Easing.Exponential.InOut);
 
                 }
             }

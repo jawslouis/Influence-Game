@@ -1,5 +1,5 @@
 import {Cell, valToScale} from "./cell";
-import {createUI} from "./animateTransition";
+import {createUI, endFill, startFill} from "./animateTransition";
 import {setupComponents, updateElements} from "./uiComponents";
 import {
     endTurn,
@@ -8,7 +8,7 @@ import {
 } from "./gameController";
 import {gameHeight, gameWidth, GREEN, thresholdScale} from "./utilities";
 import {phaserMod} from "./phaserMod";
-import {animateDeselect, endFill, startFill} from "./animateSelect";
+import {animateDeselect} from "./animateSelect";
 import {sendMove} from "./multiplayer";
 import {d, g, group, fillData, setGame} from "./display";
 import {cellList, isMultiplayer, selected} from "./gameState";

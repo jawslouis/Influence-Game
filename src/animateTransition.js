@@ -5,7 +5,13 @@ Shader method is used because of speed (60FPS). Benchmarks for other approaches:
 - Identifying hexagon using containers in ProcessPixels: 2 FPS
  */
 import {gameHeight, gameWidth, valToColor, valToScale} from "./utilities";
-import {d} from "./display";
+import {clearBmd, d, fillData, g, updateBmd} from "./display";
+
+// Using game width. Since pointer co-ordinates have to be used, the shader will convert from game width to 0-1 range.
+export const startFill = gameWidth * 0.77;
+export const endFill = gameWidth * 0.24;
+
+export const transition_time = 500;
 
 var fragmentSrc = [
 
@@ -144,4 +150,43 @@ export function calculateFill({cell, cellVal}) {
         drawBmd(fillPattern);
 
     }
+}
+
+export var transitionTween = null;
+export const setTransitionTween = (val) => transitionTween = val;
+
+export function animateTransition(cells, hasDelay, postUpdate = null,) {
+    // if (!d.bmdCleared)
+        clearBmd(true);
+
+    fillData.time = startFill;
+    let delay = hasDelay ? 1000 : 0;
+
+    transitionTween = g.add.tween(fillData).to({time: endFill}, transition_time, "Linear", false, delay);
+
+    transitionTween.onStart.add(() => {
+        // do this expensive code when the tween actually starts. user may move on to another cell before this is called. so we can skip executing the code.
+        for (var i = 0; i < cells.length; i++) {
+            cells[i].updateCellColor(true);
+        }
+        updateBmd();
+    });
+
+    transitionTween.onComplete.add(function () {
+
+        for (var i = 0; i < cells.length; i++) {
+            cells[i].updateCellColor(false);
+        }
+
+        clearBmd(true);
+
+        transitionTween = null;
+
+        if (postUpdate != null) {
+            postUpdate();
+        }
+
+
+    });
+    transitionTween.start();
 }

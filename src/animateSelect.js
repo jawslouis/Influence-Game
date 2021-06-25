@@ -1,17 +1,13 @@
 import {gameWidth, getColorBandFromValue, valueAtTurn} from "./utilities";
 import {valToScale} from "./utilities";
-import {cell_update_time, copyBoard} from "./cell";
-import {g, group, clearBmd, fillData, updateBmd} from "./display";
+import {transition_time, copyBoard} from "./cell";
+import {g, group, clearBmd, fillData, updateBmd, d} from "./display";
 import {cellList, turnValue, updateBoard, selected, setSelected} from "./gameState";
+import {animateTransition, setTransitionTween, transitionTween} from "./animateTransition";
 
 const selectTime = 200;
 const deselectTime = 1000;
 
-// Using game width. Since pointer co-ordinates have to be used, the shader will convert from game width to 0-1 range.
-export const startFill = gameWidth * 0.77;
-export const endFill = gameWidth * 0.24;
-
-let transitionTween = null;
 let futureCellList = null;
 let isFutureColor = false;
 
@@ -91,10 +87,11 @@ export function stopAnimateFuture() {
 
     if (transitionTween !== null) {
         transitionTween.stop(false);
-        transitionTween = null;
+        setTransitionTween(null);
     }
 
-    clearBmd(true);
+    // if (!d.bmdCleared)
+        clearBmd(true);
 
     if (futureCellList !== null) {
         futureCellList.forEach(cell => {
@@ -187,40 +184,6 @@ export function animateDeselect() {
 
 }
 
-
-function animateTransition(cells, hasDelay, postUpdate = null,) {
-    clearBmd(true);
-    fillData.time = startFill;
-    let delay = hasDelay ? 1000 : 0;
-
-    transitionTween = g.add.tween(fillData).to({time: endFill}, cell_update_time, "Linear", false, delay);
-
-    transitionTween.onStart.add(() => {
-        for (var i = 0; i < cells.length; i++) {
-            cells[i].updateCellColor(true);
-        }
-        updateBmd();
-    });
-
-    transitionTween.onComplete.add(function () {
-
-        for (var i = 0; i < cells.length; i++) {
-            cells[i].updateCellColor(false);
-        }
-
-        clearBmd(true);
-
-        transitionTween = null;
-
-        if (postUpdate != null) {
-            postUpdate();
-        }
-
-
-    });
-    transitionTween.start();
-}
-
 export function animateCellUpdate(postUpdate = null) {
 
     if (transitionTween !== null) {
@@ -228,7 +191,8 @@ export function animateCellUpdate(postUpdate = null) {
         cellList.forEach(cell => {
             cell.fillPrevColor();
         });
-        transitionTween = null;
+
+        setTransitionTween(null);
     }
 
     animateTransition(cellList, false, postUpdate);
