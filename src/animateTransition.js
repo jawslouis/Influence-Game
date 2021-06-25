@@ -167,7 +167,7 @@ export const setTransitionTween = (val) => transitionTween = val;
 
 export function animateTransition(cells, hasDelay, postUpdate = null,) {
     if (!d.bmdCleared)
-        clearBmd(true);
+        clearBmd(false);
 
     fillData.time = startFill;
     let delay = hasDelay ? 1000 : 0;

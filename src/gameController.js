@@ -54,7 +54,6 @@ export function selectButton(button) {
     animateSelect();
 }
 
-let needsUpdate = true;
 let boardHistory = [];
 export var moveHistory = [];
 
@@ -127,14 +126,14 @@ export function endTurn() {
 
     var turnVal = turnValue();
 
-    if (needsUpdate) {
-        setCurrentTurn(currentTurn + 1);
-        // save board state
-        var currentBoard = cellList.map(function (x) {
-            return x.value;
-        });
-        boardHistory.push(currentBoard);
-    }
+
+    setCurrentTurn(currentTurn + 1);
+    // save board state
+    var currentBoard = cellList.map(function (x) {
+        return x.value;
+    });
+    boardHistory.push(currentBoard);
+
 
     if (selected !== null) {
         selected.cell.setValue(turnVal);
@@ -144,15 +143,11 @@ export function endTurn() {
 
     updateElements(currentTurn);
 
-    var ended = false;
+    let ended = updateBoard(cellList);
 
-    if (needsUpdate) {
-        ended = updateBoard(cellList);
+    if (ended) animateCellUpdate();
+    else animateCellUpdate(startTurn);
 
-        if (ended) animateCellUpdate();
-        else animateCellUpdate(startTurn);
-
-    }
 
     // count score now
     let {greenScore, blueScore} = updateScore();
@@ -163,12 +158,6 @@ export function endTurn() {
         aiStop = true;
         showGameOver(greenScore, blueScore);
         sendAnalytics('end');
-        return;
-    }
-
-    // game has not ended. Complete the animation
-    if (!needsUpdate) {
-        needsUpdate = true;
     }
 
 }
@@ -178,6 +167,7 @@ function resetItems() {
     hasStarted = false;
     animateDeselect({selected, currentTurn});
     updateElements(currentTurn);
+    updateScore();
 }
 
 export function restartClick() {
@@ -234,14 +224,9 @@ export function undo() {
     }
 
     animateCellUpdate();
-
-
-    resetItems();
     setCurrentTurn(currentTurn - 1);
-    needsUpdate = false;
+    resetItems();
     aiStop = true;
-    endTurn();
-
 }
 
 export var turnActive = false;
