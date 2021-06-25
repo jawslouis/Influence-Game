@@ -1,7 +1,7 @@
 import {gameWidth} from "./utilities";
 
 export const d = {
-    // bmdCleared: false,
+    bmdCleared: false,
 };
 export const group = {};
 export var fillData = {time: gameWidth};
@@ -15,7 +15,7 @@ export function clearBmd(update = false) {
     d.bmdDecrease.clear();
     d.bmdIncrease.clear();
 
-    // d.bmdCleared = true;
+    d.bmdCleared = true;
 
     if (update) updateBmd();
 }

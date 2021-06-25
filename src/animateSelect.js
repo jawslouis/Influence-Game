@@ -1,7 +1,7 @@
-import {gameWidth, getColorBandFromValue, valueAtTurn} from "./utilities";
+import {getColorBandFromValue} from "./utilities";
 import {valToScale} from "./utilities";
-import {transition_time, copyBoard} from "./cell";
-import {g, group, clearBmd, fillData, updateBmd, d} from "./display";
+import {copyBoard} from "./cell";
+import {g, group, clearBmd,  d} from "./display";
 import {cellList, turnValue, updateBoard, selected, setSelected} from "./gameState";
 import {animateTransition, setTransitionTween, transitionTween} from "./animateTransition";
 
@@ -83,15 +83,15 @@ export function animateSelect() {
     animateFutureState();
 }
 
-export function stopAnimateFuture() {
+export function stopAnimateFuture({clearNeedsUpdate}) {
 
     if (transitionTween !== null) {
         transitionTween.stop(false);
         setTransitionTween(null);
     }
 
-    // if (!d.bmdCleared)
-        clearBmd(true);
+    if (!d.bmdCleared)
+        clearBmd(clearNeedsUpdate);
 
     if (futureCellList !== null) {
         futureCellList.forEach(cell => {
@@ -177,7 +177,7 @@ export function animateDeselect() {
     scaleTween.start();
 
     setSelected(null);
-    stopAnimateFuture();
+    stopAnimateFuture({clearNeedsUpdate:true});
     checkGroup(currentSelected);
 
     currentSelected.cell.updateBorder(false);

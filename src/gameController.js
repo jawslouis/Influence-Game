@@ -62,7 +62,7 @@ function deselect() {
     let oldSelected = selected;
     setSelected(null);
     checkGroup(oldSelected);
-    stopAnimateFuture();
+    stopAnimateFuture({clearNeedsUpdate: false});
 }
 
 export function sendAnalytics(action) {
