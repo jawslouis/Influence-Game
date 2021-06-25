@@ -73,13 +73,12 @@ function getRandomInt(min, max) {
 export function calculateFill({cell, cellVal}) {
 // figure out which are our influencers
     var influencers = [];
-    var delta = 0;
-    for (var i = 0; i < cell.neighbors.length; i++) {
-        var n = cell.neighbors[i];
+
+    for (const n of cell.neighbors) {
         if ((cell.prevValue > cell.value && cell.prevValue > n.prevValue)
             || (cell.prevValue < cell.value && cell.prevValue < n.prevValue)) {
-            influencers.push(n);
-            delta += Math.abs(cell.prevValue - n.prevValue);
+            let diff = Math.abs(cell.prevValue - n.prevValue);
+            influencers.push({n, diff});
         }
     }
 
@@ -108,7 +107,6 @@ export function calculateFill({cell, cellVal}) {
 
     if (influencers.length === 0) {
         // we are probably restarting. randomly choose an angle
-
         fillPattern.alpha = 1.0;
         fillPattern.angle = getRandomInt(0, 5) * 60;
         drawBmd(fillPattern);
@@ -116,24 +114,36 @@ export function calculateFill({cell, cellVal}) {
 
     }
 
-    // figure out the direction of influencers
-    for (var i = 0; i < influencers.length; i++) {
-        var inf = influencers[i];
+    // sort in decreasing order
+    influencers.sort((a, b) => b.diff - a.diff);
 
-        if (inf.index == cell.index - 1) {
+    let delta = influencers[0].diff;
+    let topInf = [influencers[0].n];
+
+    // for performance, only select top 2 influencers
+    if (influencers.length > 1) {
+        topInf.push(influencers[1].n)
+        delta += influencers[1].diff;
+    }
+
+
+    // figure out the direction of influencers
+    for (const inf of topInf) {
+
+        if (inf.index === cell.index - 1) {
             // influence from top
             fillPattern.angle = 180;
 
-        } else if (inf.index == cell.index + 1) {
+        } else if (inf.index === cell.index + 1) {
             // influence from bottom
             fillPattern.angle = 0;
-        } else if (inf.index == cell.index - 5) {
+        } else if (inf.index === cell.index - 5) {
             // bottom left
             fillPattern.angle = 60;
-        } else if (inf.index == cell.index - 6) {
+        } else if (inf.index === cell.index - 6) {
             // top left
             fillPattern.angle = 120;
-        } else if (inf.index == cell.index + 5) {
+        } else if (inf.index === cell.index + 5) {
             // top right
             fillPattern.angle = 240;
         } else {
