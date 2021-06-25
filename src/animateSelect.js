@@ -77,6 +77,7 @@ export function animateSelect() {
     });
 
     tweenBorder.onComplete.add(function () {
+        button.cell.setBorderScale(1);
         button.cell.borderTween = null;
         checkGroup(button);
     });
