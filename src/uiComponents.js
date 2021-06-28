@@ -1,17 +1,12 @@
-import {currentTurn} from "./gameState";
+import {currentTurn, difficulty, settings} from "./gameState";
 
 const GREEN_STR = '#038003';
 const BLUE_STR = '#005bd5';
 export const GREEN_CLASS = 'green';
 export const BLUE_CLASS = 'blue';
 
-export var settings = {
-    aiBlue: 'None',
-    aiGreen: 'None',
-};
-
-export const greenIsOn = () => settings.aiGreen !== 'None';
-export const blueIsOn = () => settings.aiBlue !== 'None';
+export const greenIsOn = () => settings.aiGreen !== difficulty.None;
+export const blueIsOn = () => settings.aiBlue !== difficulty.None;
 
 const tileSuffix = (score) => score === 1 ? ' tile' : ' tiles';
 
@@ -66,6 +61,24 @@ export function showGameOver(greenScore, blueScore) {
 let settingsBg;
 let gameAiStop, gameStartTurn;
 
+function elemToDifficulty(elem) {
+    let attr = elem.getAttribute('ai');
+    switch (attr) {
+        case 'none':
+            return difficulty.None;
+        case 'easy':
+            return difficulty.Easy;
+        case 'medium':
+            return difficulty.Medium;
+        case 'hard':
+            return difficulty.Hard;
+        case 'very hard':
+            return difficulty.VeryHard;
+        default:
+            throw 'Error: Difficulty not found';
+    }
+}
+
 export function setupComponents({undoClick, restartClick, setAiStop, startTurn}) {
 
     gameAiStop = setAiStop;
@@ -99,9 +112,8 @@ export function setupComponents({undoClick, restartClick, setAiStop, startTurn})
                 elem.classList.add('btn-selected');
 
                 if (color === GREEN_CLASS) {
-                    settings.aiGreen = elem.innerHTML;
-                } else settings.aiBlue = elem.innerHTML;
-
+                    settings.aiGreen = elemToDifficulty(elem);
+                } else settings.aiBlue = elemToDifficulty(elem);
             }
         };
     });

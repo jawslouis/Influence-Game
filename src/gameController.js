@@ -4,7 +4,6 @@ import {
     greenIsOn,
     resultString,
     setScore,
-    settings,
     showGameOver,
     updateElements, matchMsg,
 } from "./uiComponents";
@@ -17,7 +16,7 @@ import {
     updateBoard,
     selected,
     setSelected,
-    setCurrentTurn, turnIsGreen, isMultiplayer
+    setCurrentTurn, turnIsGreen, isMultiplayer, settings, difficulty
 } from "./gameState";
 import {d, g} from "./display";
 import {precalculateFill} from "./animateTransition";
@@ -284,7 +283,7 @@ export function receiveAiResult(index) {
         });
     }
 
-    if (turnIsGreen() && settings.aiGreen === 'Very Hard' || !turnIsGreen() && settings.aiBlue === 'Very Hard') {
+    if (turnIsGreen() && settings.aiGreen === difficulty.VeryHard || !turnIsGreen() && settings.aiBlue === difficulty.VeryHard) {
         doSelect();
     } else {
         // add delay for the faster AIs

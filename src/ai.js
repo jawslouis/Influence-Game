@@ -1,6 +1,6 @@
 /* Note: Cannot import game state values as this is run in a web worker thread */
 import {valueAtTurn} from "./utilities";
-import {updateBoard} from "./gameState";
+import {updateBoard, difficulty} from "./gameState";
 import {aboveThreshold} from "./cell";
 import {copyBoard} from "./cellController";
 
@@ -29,11 +29,11 @@ function boardScore(board) {
 function difficultyToNum(diff, numChoices) {
 
     switch (diff) {
-        case 'Easy':
+        case difficulty.Easy:
             return Math.round(numChoices * 0.4);
-        case 'Medium':
+        case difficulty.Medium:
             return Math.round(numChoices * 0.1);
-        case 'Hard':
+        case difficulty.Hard:
             return 0;
         default:
             throw  'Error: difficulty not found';
@@ -85,7 +85,7 @@ export function findBestCell({settings, cellList, currentTurn}) {
 
     let isGreen = currentTurn % 2 === 1;
     let result;
-    if (isGreen && settings.aiGreen === 'Very Hard' || !isGreen && settings.aiBlue === 'Very Hard') {
+    if (isGreen && settings.aiGreen === difficulty.VeryHard || !isGreen && settings.aiBlue === difficulty.VeryHard) {
         // for very hard AI
         result = MCTS({cellList, currentTurn});
     } else result = greedySearch({cellList, currentTurn, settings});

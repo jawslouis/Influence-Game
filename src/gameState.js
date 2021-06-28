@@ -1,5 +1,23 @@
 import {valueAtTurn} from "./utilities";
 
+export var selected;
+export var currentTurn = 1;
+export var cellList = [];
+export var isMultiplayer = false;
+
+export const difficulty = Object.freeze({
+    None: "None",
+    Easy: "Easy",
+    Medium: "Medium",
+    Hard: "Hard",
+    VeryHard: "Very Hard"
+});
+
+export var settings = {
+    aiBlue: difficulty.None,
+    aiGreen: difficulty.None,
+};
+
 export function updateBoard(board) {
 
     // update all cells
@@ -20,11 +38,6 @@ export function updateBoard(board) {
     }
     return ended;
 }
-
-export var selected;
-export var currentTurn = 1;
-export var cellList = [];
-export var isMultiplayer = false;
 
 export function setMultiplayer(val) {
     isMultiplayer = val;
