@@ -70,7 +70,7 @@ export function borderColor(currentTurn) {
 
 export function valueAtTurn(turn) {
     if (turn === 1) {
-        return 0.57;
+        return 0.6;
     } else if (turn % 2 === 1) {
         return 1;
     } else {
