@@ -165,7 +165,6 @@ export function endTurn() {
 
 function resetItems() {
     turnActive = false;
-    hasStarted = false;
     animateDeselect({selected, currentTurn});
     updateElements(currentTurn);
     updateScore();
@@ -193,6 +192,7 @@ export function restart() {
 
     boardHistory = [];
     moveHistory = [];
+    hasStarted = false;
 
     resetItems();
 
